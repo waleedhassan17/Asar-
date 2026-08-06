@@ -46,7 +46,7 @@ export async function getCurrentProfile() {
 
   let { data } = await supabase
     .from("profiles")
-    .select("id, display_name, email, avatar_url, birthday, is_admin")
+    .select("id, display_name, email, avatar_url, birthday, is_admin, onboarded_at")
     .eq("id", user.id)
     .maybeSingle();
 
@@ -60,7 +60,7 @@ export async function getCurrentProfile() {
     
     const retry = await supabase
       .from("profiles")
-      .select("id, display_name, email, avatar_url, birthday, is_admin")
+      .select("id, display_name, email, avatar_url, birthday, is_admin, onboarded_at")
       .eq("id", user.id)
       .maybeSingle();
       

@@ -17,6 +17,11 @@ export default async function CreatePage(props: PageProps<"/create">) {
   const profile = await getCurrentProfile();
   if (!profile) redirect("/login?next=/create");
 
+  // See the note in dashboard/page.tsx. Onboarding stamps `onboarded_at`
+  // before it navigates here, so its own "Create my mission" button does
+  // not bounce back.
+  if (!profile.onboarded_at) redirect("/onboarding");
+
   const { template } = await props.searchParams;
   const supabase = await createClient();
   const { data } = await supabase

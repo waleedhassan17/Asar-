@@ -256,7 +256,16 @@ const AVATAR_TONES = [
   "bg-[#ecebfa] text-[#4a3aad]",
 ];
 
-export function Avatar({ name, size = 36 }: { name: string; size?: number }) {
+export function Avatar({
+  name,
+  size = 36,
+  src,
+}: {
+  name: string;
+  size?: number;
+  /** An uploaded picture. Initials remain the fallback when absent. */
+  src?: string | null;
+}) {
   const initials = name
     .split(/\s+/)
     .slice(0, 2)
@@ -268,13 +277,21 @@ export function Avatar({ name, size = 36 }: { name: string; size?: number }) {
   return (
     <span
       className={cx(
-        "inline-flex shrink-0 items-center justify-center rounded-full border-2 border-surface font-semibold",
+        "inline-flex shrink-0 items-center justify-center overflow-hidden rounded-full border-2 border-surface font-semibold",
         AVATAR_TONES[sum % AVATAR_TONES.length],
       )}
       style={{ width: size, height: size, fontSize: size * 0.36 }}
       aria-hidden
     >
-      {initials || "♡"}
+      {src ? (
+        // A raw <img>: avatars live on the Supabase storage domain, and
+        // PhotoBackground already establishes that arbitrary remote hosts
+        // are served as-is rather than opening the image optimizer to them.
+        // eslint-disable-next-line @next/next/no-img-element
+        <img src={src} alt="" className="h-full w-full object-cover" />
+      ) : (
+        (initials || "♡")
+      )}
     </span>
   );
 }

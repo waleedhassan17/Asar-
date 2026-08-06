@@ -13,7 +13,7 @@
  * Every migration is idempotent (create or replace / if not exists /
  * on conflict), so re-running this is safe.
  */
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import pg from "pg";
 
@@ -29,13 +29,16 @@ if (existsSync(envFile)) {
   }
 }
 
+// Read from disk rather than a hardcoded list. The list used to be
+// hardcoded, which meant a newly added migration was silently skipped —
+// the script reported success having never run it. Filenames are
+// timestamp-prefixed, so a plain sort is the intended order, and the seed
+// goes last because it depends on every table existing.
 const FILES = [
-  "supabase/migrations/20260806000100_schema.sql",
-  "supabase/migrations/20260806000200_views.sql",
-  "supabase/migrations/20260806000300_rls.sql",
-  "supabase/migrations/20260806000400_api_functions.sql",
-  "supabase/migrations/20260806000500_storage.sql",
-  "supabase/migrations/20260806000600_directory.sql",
+  ...readdirSync(resolve(process.cwd(), "supabase/migrations"))
+    .filter((name) => name.endsWith(".sql"))
+    .sort()
+    .map((name) => `supabase/migrations/${name}`),
   "supabase/seed.sql",
 ];
 

@@ -1,7 +1,10 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
-const PROTECTED = ["/dashboard", "/create", "/admin", "/settings"];
+const PROTECTED = ["/dashboard", "/create", "/admin", "/settings", "/onboarding"];
+
+/** Paths where finishing onboarding matters, in either direction. */
+const ONBOARDING_GATED = ["/dashboard", "/create", "/onboarding"];
 
 /**
  * Refreshes the Supabase session cookie on every request and does one
@@ -45,6 +48,43 @@ export async function middleware(request: NextRequest) {
     redirect.pathname = "/login";
     redirect.searchParams.set("next", path);
     return NextResponse.redirect(redirect);
+  }
+
+  // First-run gate.
+  //
+  // This has to happen here rather than in the page, even though the page
+  // already holds the profile: /dashboard and /create both have a
+  // loading.tsx, so Next flushes the skeleton with a 200 and a
+  // page-level redirect() arrives later in the stream as a client
+  // navigation. The person sees a skeleton of the wrong page first. A
+  // middleware redirect is a real 307 before any HTML is sent.
+  //
+  // The extra read is scoped to these three paths, so it costs nothing on
+  // the rest of the site.
+  if (user && ONBOARDING_GATED.some((p) => path === p || path.startsWith(`${p}/`))) {
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("onboarded_at")
+      .eq("id", user.id)
+      .maybeSingle();
+
+    const onboarded = Boolean(profile?.onboarded_at);
+    const onOnboarding = path === "/onboarding";
+
+    if (!onboarded && !onOnboarding) {
+      const redirect = request.nextUrl.clone();
+      redirect.pathname = "/onboarding";
+      redirect.search = "";
+      return NextResponse.redirect(redirect);
+    }
+
+    // Finished it already: this is not a page to land on again.
+    if (onboarded && onOnboarding) {
+      const redirect = request.nextUrl.clone();
+      redirect.pathname = "/dashboard";
+      redirect.search = "";
+      return NextResponse.redirect(redirect);
+    }
   }
 
   if (user && (path === "/login" || path === "/register")) {

@@ -9,18 +9,16 @@
  *
  * The output is generated; edit the files in supabase/migrations/ instead.
  */
-import { readFileSync, writeFileSync } from "node:fs";
+import { readFileSync, readdirSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
 
-const FILES = [
-  "supabase/migrations/20260806000100_schema.sql",
-  "supabase/migrations/20260806000200_views.sql",
-  "supabase/migrations/20260806000300_rls.sql",
-  "supabase/migrations/20260806000400_api_functions.sql",
-  "supabase/migrations/20260806000500_storage.sql",
-  "supabase/migrations/20260806000600_directory.sql",
-  "supabase/seed.sql",
-];
+// Read from disk rather than a hardcoded list, so a new migration is
+// never silently left out of the bundle. Filenames are timestamp-prefixed,
+// so a plain sort is the intended order.
+const FILES = readdirSync(resolve(process.cwd(), "supabase/migrations"))
+  .filter((name) => name.endsWith(".sql"))
+  .sort()
+  .map((name) => `supabase/migrations/${name}`);
 
 const banner = (text) =>
   ["", "-".repeat(70), `-- ${text}`, "-".repeat(70), ""].join("\n");

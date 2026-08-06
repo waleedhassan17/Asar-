@@ -35,6 +35,11 @@ export default async function DashboardPage() {
   const profile = await getCurrentProfile();
   if (!profile) redirect("/login?next=/dashboard");
 
+  // First run. Gated here rather than in middleware because this page
+  // already has the profile in hand — doing it upstream would add a
+  // database round trip to every request on the site.
+  if (!profile.onboarded_at) redirect("/onboarding");
+
   // "Assalamu alaikum" is the warmer greeting for the audience this is
   // built for; anyone without a name set still gets a proper welcome.
   const firstName = profile.display_name?.trim().split(/\s+/)[0];
