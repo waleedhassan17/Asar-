@@ -137,7 +137,7 @@ export function LogoMark({
  * `mark` — the crescent alone, inheriting the current text colour.
  * `tile` — the mark in gold on an evergreen rounded square; use where the
  *          logo needs to hold its own against a photo or at tiny sizes.
- * `full` — tile plus the Fraunces wordmark.
+ * `full` — tile plus the display-serif wordmark.
  */
 export function Logo({
   variant = "full",

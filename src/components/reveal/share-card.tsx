@@ -41,7 +41,7 @@ export function ShareCard({ reveal, url }: { reveal: RevealPayload; url: string 
     // Use the same typefaces as the page; they're already loaded by
     // next/font, we just need their generated family names.
     const styles = getComputedStyle(document.body);
-    const displayFont = styles.getPropertyValue("--font-fraunces").trim() || "Georgia, serif";
+    const displayFont = styles.getPropertyValue("--font-display-serif").trim() || "Georgia, serif";
     const sansFont = styles.getPropertyValue("--font-inter").trim() || "system-ui, sans-serif";
     try {
       await document.fonts.ready;

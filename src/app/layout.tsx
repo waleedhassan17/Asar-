@@ -1,10 +1,19 @@
 import type { Metadata, Viewport } from "next";
-import { Fraunces, Inter } from "next/font/google";
+import { Inter, Source_Serif_4 } from "next/font/google";
 import { ToastProvider } from "@/components/ui/toast";
 import "./globals.css";
 
-const display = Fraunces({
-  variable: "--font-fraunces",
+/**
+ * Source Serif 4 for headlines, Inter for everything else.
+ *
+ * The display face was Fraunces, which carries `SOFT` and `WONK` axes —
+ * it is drawn to be characterful, and at headline size that character
+ * reads as a wobble rather than as warmth. Source Serif is the quieter
+ * choice: a screen-first text serif with the same editorial weight and
+ * none of the quirk, and it sits properly alongside Inter.
+ */
+const display = Source_Serif_4({
+  variable: "--font-display-serif",
   subsets: ["latin"],
   weight: ["400", "500", "600", "700"],
   display: "swap",

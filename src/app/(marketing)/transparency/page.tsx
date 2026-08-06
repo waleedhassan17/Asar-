@@ -1,6 +1,4 @@
 import type { Metadata } from "next";
-import { SiteHeader } from "@/components/site/header";
-import { SiteFooter } from "@/components/site/footer";
 import { Badge, Card, LinkButton, Progress } from "@/components/ui";
 import { createClient } from "@/lib/supabase/server";
 import { isSupabaseConfigured } from "@/lib/env";
@@ -28,25 +26,24 @@ interface Transparency {
   proof_attached_percent: number;
 }
 
-export default async function TransparencyPage() {
-  const { transparencyNote } = await getPublicSettings();
-
-  let stats: Transparency | null = null;
-  if (isSupabaseConfigured()) {
-    try {
-      const supabase = await createClient();
-      const { data } = await supabase.from("platform_transparency").select("*").single();
-      stats = (data as Transparency | null) ?? null;
-    } catch {
-      stats = null;
-    }
+async function loadStats(): Promise<Transparency | null> {
+  if (!isSupabaseConfigured()) return null;
+  try {
+    const supabase = await createClient();
+    const { data } = await supabase.from("platform_transparency").select("*").single();
+    return (data as Transparency | null) ?? null;
+  } catch {
+    return null;
   }
+}
+
+export default async function TransparencyPage() {
+  // Two independent reads. Awaiting them one after the other made the page
+  // wait for the sum of both round trips for no reason.
+  const [{ transparencyNote }, stats] = await Promise.all([getPublicSettings(), loadStats()]);
 
   return (
-    <>
-      <SiteHeader />
-
-      <main className="mx-auto w-full max-w-3xl px-5 py-12">
+    <div className="mx-auto w-full max-w-3xl px-5 py-12">
         <Badge tone="primary">A-M05 · updated live</Badge>
         <h1 className="mt-4 font-display text-4xl text-ink">Transparency log</h1>
         <p className="mt-4 text-lg leading-relaxed text-ink-2">{transparencyNote}</p>
@@ -160,9 +157,6 @@ export default async function TransparencyPage() {
             Back to Asar
           </LinkButton>
         </div>
-      </main>
-
-      <SiteFooter />
-    </>
+    </div>
   );
 }
