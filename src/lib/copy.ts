@@ -42,6 +42,51 @@ export const heroCopy = {
   micro: "Free. Takes about two minutes. Your friends don't need an account.",
 } as const;
 
+/* ------------------------------------------------------------------ */
+/* Impact reel                                                         */
+/*                                                                     */
+/* The footage is stock: nobody in it has heard of Asar, and none of it */
+/* was filmed for a mission. So every line here is written in the       */
+/* conditional — what a birthday *can* start — and never in the past    */
+/* tense of something we claim to have done. "What we did" would be a   */
+/* lie told with someone else's video.                                  */
+/* ------------------------------------------------------------------ */
+export const impactReelCopy = {
+  eyebrow: "Impact in motion",
+  headline: "See what a birthday can grow into.",
+  sub: "Not our footage, and not our work — this is simply what the kinds of good people pledge on Asar look like when someone does them.",
+  hero: {
+    src: "/videos/impact-hero.mp4",
+    poster: "/videos/impact-hero.jpg",
+    overlay: "The kind of good your birthday can start.",
+  },
+  clips: [
+    {
+      src: "/videos/impact-plant.mp4",
+      poster: "/videos/impact-plant.jpg",
+      alt: "Two hands settling a seedling into dark soil",
+      title: "Plant",
+      body: "A tree someone puts in the ground on your birthday outlives the birthday.",
+    },
+    {
+      src: "/videos/impact-feed.mp4",
+      poster: "/videos/impact-feed.jpg",
+      alt: "A meal container passing from one pair of hands to another",
+      title: "Feed",
+      body: "A meal is the most ordinary kind of good, and the one people feel fastest.",
+    },
+    {
+      src: "/videos/impact-care.mp4",
+      poster: "/videos/impact-care.jpg",
+      alt: "A hand pointing to a page of a notebook on a desk",
+      title: "Care",
+      body: "An hour of someone's attention counts as much here as anything you can fund.",
+    },
+  ],
+  footnote:
+    "Stock footage, used under licence and credited in the repository. It illustrates the kinds of action people pledge — it is not a record of missions run on Asar.",
+} as const;
+
 /** Swap either of these into `heroCopy` wholesale to change the framing. */
 export const heroAlternates = {
   sadaqahJariyah: {

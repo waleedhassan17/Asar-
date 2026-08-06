@@ -7,6 +7,7 @@ import { GlassCard } from "@/components/brand/glass-card";
 import { createClient } from "@/lib/supabase/server";
 import { isSupabaseConfigured } from "@/lib/env";
 import { HadithBand } from "@/components/brand/hadith-band";
+import { ImpactReel } from "@/components/marketing/impact-reel";
 import { backgroundByMood } from "@/lib/backgrounds";
 import { heroCopy } from "@/lib/copy";
 import type { MissionTemplate } from "@/lib/types";
@@ -217,6 +218,15 @@ export default async function HomePage() {
             ))}
           </div>
         </section>
+
+        {/* ---------------------------------------------------------- */}
+        {/* Impact in motion                                            */}
+        {/*                                                             */}
+        {/* Sits immediately before the honesty card on purpose: the    */}
+        {/* footage is the most persuasive thing on the page, so what   */}
+        {/* Asar does not do should be the very next thing read.        */}
+        {/* ---------------------------------------------------------- */}
+        <ImpactReel />
 
         {/* ---------------------------------------------------------- */}
         {/* Honesty (T-04)                                              */}
