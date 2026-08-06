@@ -41,14 +41,32 @@ const SLIDES: Slide[] = [
 
 export default function AuthLayout({ children }: LayoutProps<"/">) {
   return (
-    <div className="grid min-h-[100svh] grid-rows-[auto_1fr] lg:grid-cols-2 lg:grid-rows-1">
-      <PhotoSlideshow
-        slides={SLIDES}
-        className="h-48 sm:h-60 lg:order-2 lg:h-auto lg:min-h-[100svh]"
-      />
+    <div className="grid min-h-screen flex-1 grid-rows-[auto_1fr] lg:grid-rows-1 lg:grid-cols-[minmax(30rem,42rem)_1fr]">
+      {/* The grid row stretches this to full height on large screens, so it
+          needs no height of its own beyond the mobile banner. */}
+      <PhotoSlideshow slides={SLIDES} className="h-48 sm:h-60 lg:order-2 lg:h-auto" />
 
-      <div className="flex flex-col px-5 py-8 sm:px-10 lg:order-1 lg:px-14 lg:py-10">
-        <header className="flex items-center justify-between gap-4">
+      {/*
+        Not pure white. A flat #FFFFFF half butted against a warm
+        photograph reads as an unfinished panel rather than a designed one,
+        and on a wide screen it leaves the form adrift in the middle of
+        nothing. The column is capped so it never grows past a comfortable
+        reading width, and carries a very faint evergreen/gold wash — the
+        two brand tints, at an opacity where they register as warmth rather
+        than as colour.
+      */}
+      <div className="relative flex flex-col bg-surface-2 px-5 py-8 sm:px-10 lg:order-1 lg:px-14 lg:py-10">
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-0 opacity-70"
+          style={{
+            backgroundImage:
+              "radial-gradient(115% 75% at 0% 0%, var(--color-primary-100) 0%, transparent 55%)," +
+              "radial-gradient(85% 55% at 100% 100%, var(--color-gold-100) 0%, transparent 60%)",
+          }}
+        />
+
+        <header className="relative flex items-center justify-between gap-4">
           <Link href="/" className="inline-flex rounded-md" aria-label="Asar — home">
             <Logo size={32} />
           </Link>
@@ -60,11 +78,13 @@ export default function AuthLayout({ children }: LayoutProps<"/">) {
           </Link>
         </header>
 
-        <main className="flex flex-1 items-center py-10">
-          <div className="mx-auto w-full max-w-[26rem]">{children}</div>
+        <main className="relative flex flex-1 items-center py-10">
+          <div className="mx-auto w-full max-w-[27rem] rounded-card border border-line bg-surface p-7 shadow-md sm:p-8">
+            {children}
+          </div>
         </main>
 
-        <p className="mx-auto max-w-[26rem] text-xs leading-relaxed text-ink-3">
+        <p className="relative mx-auto max-w-[27rem] text-xs leading-relaxed text-ink-3">
           Asar never handles your money. Every gift happens on the receiving
           organisation&apos;s own official website.
         </p>
