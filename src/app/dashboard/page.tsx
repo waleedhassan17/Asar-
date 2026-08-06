@@ -7,7 +7,10 @@ import { SetupNotice } from "@/components/site/setup-notice";
 import { SignOutButton } from "@/components/site/sign-out-button";
 import { Card, LinkButton } from "@/components/ui";
 import { Logo } from "@/components/brand/logo";
+import { GlassCard } from "@/components/brand/glass-card";
+import { PhotoBackground } from "@/components/brand/photo-background";
 import { MissionCard, MissionCardSkeleton } from "@/components/mission/mission-card";
+import { NextReveal } from "./next-reveal";
 import { createClient, getCurrentProfile } from "@/lib/supabase/server";
 import { isSupabaseConfigured, siteUrl } from "@/lib/env";
 import { plural } from "@/lib/format";
@@ -45,10 +48,12 @@ export default async function DashboardPage() {
       <SiteHeader />
 
       <main className="mx-auto w-full max-w-5xl px-5 py-10">
-        <div className="flex flex-wrap items-end justify-between gap-4">
+        <div className="flex flex-wrap items-end justify-between gap-4 border-b border-line pb-6">
           <div>
-            <h1 className="font-display text-3xl text-ink">{greeting}</h1>
-            <p className="mt-1 text-ink-2">Every mission you&apos;ve started, and how it&apos;s going.</p>
+            <h1 className="font-display text-3xl text-ink sm:text-[2.25rem]">{greeting}</h1>
+            <p className="mt-1.5 text-ink-2">
+              Every mission you&apos;ve started, and how it&apos;s going.
+            </p>
           </div>
           <div className="flex items-center gap-2">
             <SignOutButton />
@@ -90,47 +95,66 @@ async function MissionSections() {
 
   if (missions.length === 0) {
     return (
-      <div className="mt-10 flex flex-col items-center rounded-card border border-dashed border-line px-6 py-16 text-center">
-        <Logo variant="tile" size={64} />
-        <p className="mt-6 max-w-md font-display text-2xl leading-snug text-ink">
-          Your first mission is waiting. Turn this birthday into something that lasts.
-        </p>
-        <p className="mt-3 max-w-sm text-ink-2">
-          Pick a purpose, share one link, and open the reveal on the day.
-        </p>
-        <LinkButton href="/create" size="lg" className="mt-7">
-          Start a mission
-        </LinkButton>
+      <div className="mt-10 overflow-hidden rounded-card border border-line">
+        <PhotoBackground src="/backgrounds/hero-01.jpg" alt="" className="min-h-[26rem]">
+          <div className="flex min-h-[26rem] items-center justify-center px-5 py-14">
+            <GlassCard className="max-w-md text-center">
+              <Logo variant="tile" size={56} className="mx-auto" />
+              <p className="mt-5 font-display text-2xl leading-snug text-balance text-ink">
+                Your first mission is waiting. Turn this birthday into something that lasts.
+              </p>
+              <p className="mt-3 text-ink-2">
+                Pick a purpose, share one link, and open the reveal on the day.
+              </p>
+              <LinkButton href="/create" size="lg" className="mt-7">
+                Start a mission
+              </LinkButton>
+            </GlassCard>
+          </div>
+        </PhotoBackground>
       </div>
     );
   }
 
-  const active = missions.filter((m) => !m.is_revealed);
+  // Soonest birthday first, so the mission nearest its day leads the page.
+  const active = missions
+    .filter((m) => !m.is_revealed)
+    .sort((a, b) => new Date(a.reveal_at).getTime() - new Date(b.reveal_at).getTime());
   const completed = missions.filter((m) => m.is_revealed);
 
   const lives = missions.reduce((sum, m) => sum + (m.stats?.lives_impacted ?? 0), 0);
   const contributors = missions.reduce((sum, m) => sum + (m.stats?.contributor_count ?? 0), 0);
-  const nextBirthday =
-    active
-      .map((m) => m.reveal_at)
-      .sort((a, b) => new Date(a).getTime() - new Date(b).getTime())[0] ?? null;
+
+  // The nearest mission gets the focal band; showing it again in the grid
+  // directly underneath would just be the same card twice.
+  const [featured, ...rest] = active;
 
   return (
     <>
-      <div className="mt-8">
-        <DashboardStats lives={lives} contributors={contributors} nextBirthday={nextBirthday} />
+      {featured ? (
+        <div className="mt-8">
+          <NextReveal mission={featured} origin={origin} />
+        </div>
+      ) : null}
+
+      <div className="mt-4">
+        <DashboardStats
+          lives={lives}
+          contributors={contributors}
+          missions={missions.length}
+        />
       </div>
 
-      {active.length > 0 ? (
+      {rest.length > 0 ? (
         <section className="mt-10">
           <h2 className="font-display text-2xl text-ink">
-            Counting down{" "}
+            Also counting down{" "}
             <span className="nums text-base font-normal text-ink-3">
-              {active.length} {plural(active.length, "mission", "missions")}
+              {rest.length} {plural(rest.length, "mission", "missions")}
             </span>
           </h2>
           <ul className="mt-4 grid gap-4 sm:grid-cols-2">
-            {active.map((mission) => (
+            {rest.map((mission) => (
               <li key={mission.id}>
                 <MissionCard mission={mission} origin={origin} />
               </li>
@@ -161,7 +185,12 @@ async function MissionSections() {
 function DashboardSkeleton() {
   return (
     <>
-      <div className="mt-8">
+      {/* Mirrors the NextReveal band so the page doesn't jump when it lands. */}
+      <div
+        className="mt-8 h-[17.5rem] rounded-card border border-line bg-surface shadow-soft sm:h-64"
+        aria-hidden
+      />
+      <div className="mt-4">
         <DashboardStatsSkeleton />
       </div>
       <div className="mt-10 grid gap-4 sm:grid-cols-2" aria-hidden>

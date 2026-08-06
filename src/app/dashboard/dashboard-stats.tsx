@@ -1,62 +1,53 @@
 "use client";
 
+import type { ReactNode } from "react";
 import { CountUp } from "@/components/ui/count-up";
 import { plural } from "@/lib/format";
-import { useNow } from "@/lib/use-now";
 
 /**
- * The three numbers a mission owner actually cares about, counted up on
- * mount. Client leaf on purpose — everything around it stays a Server
- * Component.
+ * The totals across every mission the owner has run, counted up on mount.
+ *
+ * The countdown that used to live here has moved to `NextReveal`, where
+ * it gets the size it deserves; these three are the cumulative numbers —
+ * the "what have I done, in total" of the page, which is a different
+ * question from "what happens next".
+ *
+ * Client leaf on purpose: everything around it stays a Server Component.
  */
 export function DashboardStats({
   lives,
   contributors,
-  nextBirthday,
+  missions,
 }: {
   lives: number;
   contributors: number;
-  /** ISO date of the soonest upcoming reveal, or null if none are pending. */
-  nextBirthday: string | null;
+  missions: number;
 }) {
-  // useNow is a subscription, so this renders identically on the server
-  // (null -> a dash) and then fills in once mounted.
-  const now = useNow();
-  const days =
-    nextBirthday === null || now === null
-      ? null
-      : Math.max(0, Math.ceil((new Date(nextBirthday).getTime() - now) / 86_400_000));
-
   return (
     <dl className="grid gap-3 sm:grid-cols-3">
-      <Tile label="Lives touched">
+      <Tile icon="🌱" label="Lives touched">
         <CountUp value={lives} />
       </Tile>
-      <Tile label={plural(contributors, "Person who joined in", "People who joined in")}>
+      <Tile icon="🤝" label={plural(contributors, "Person who joined in", "People who joined in")}>
         <CountUp value={contributors} />
       </Tile>
-      <Tile label={nextBirthday === null ? "No countdown running" : "Until the next reveal"}>
-        {days === null ? (
-          <span className="text-ink-3">—</span>
-        ) : days === 0 ? (
-          <span className="text-gold-700">Today</span>
-        ) : (
-          <>
-            <CountUp value={days} />
-            <span className="ml-1.5 font-sans text-base font-medium text-ink-2">
-              {plural(days, "day", "days")}
-            </span>
-          </>
-        )}
+      <Tile icon="🎂" label={plural(missions, "Mission started", "Missions started")}>
+        <CountUp value={missions} />
       </Tile>
     </dl>
   );
 }
 
-function Tile({ label, children }: { label: string; children: React.ReactNode }) {
+function Tile({ icon, label, children }: { icon: string; label: string; children: ReactNode }) {
   return (
-    <div className="rounded-card border border-line bg-surface p-5">
-      <dd className="nums font-display text-3xl text-ink">{children}</dd>
+    <div className="rounded-card border border-line bg-surface p-5 transition hover:border-primary-500/40">
+      <span
+        aria-hidden
+        className="grid h-9 w-9 place-items-center rounded-full bg-primary-100 text-base"
+      >
+        {icon}
+      </span>
+      <dd className="nums mt-3 font-display text-3xl text-ink">{children}</dd>
       <dt className="mt-1 text-sm text-ink-2">{label}</dt>
     </div>
   );
@@ -68,7 +59,8 @@ export function DashboardStatsSkeleton() {
     <div className="grid gap-3 sm:grid-cols-3" aria-hidden>
       {[0, 1, 2].map((i) => (
         <div key={i} className="rounded-card border border-line bg-surface p-5">
-          <div className="h-9 w-20 rounded bg-surface-2" />
+          <div className="h-9 w-9 rounded-full bg-surface-2" />
+          <div className="mt-3 h-9 w-20 rounded bg-surface-2" />
           <div className="mt-2 h-4 w-28 rounded bg-surface-2" />
         </div>
       ))}
