@@ -38,6 +38,7 @@ export interface Mission {
   title: string;
   headline: string;
   story: string | null;
+  impact_line: string | null;
   icon: string;
   unit_singular: string;
   unit_plural: string;

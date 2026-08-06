@@ -9,6 +9,7 @@ const schema = z.object({
   title: z.string().trim().min(3, "Give your mission a name.").max(120),
   headline: z.string().trim().max(120).optional(),
   story: z.string().trim().max(2000).optional(),
+  impact_line: z.string().trim().max(160).optional(),
   icon: z.string().trim().max(8).optional(),
   unit_singular: z.string().trim().min(1).max(40),
   unit_plural: z.string().trim().min(1).max(40),

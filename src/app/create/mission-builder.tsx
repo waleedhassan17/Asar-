@@ -4,6 +4,7 @@ import { useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Badge, Button, Card, Field, Input, Textarea, cx } from "@/components/ui";
 import { useToast } from "@/components/ui/toast";
+import { MissionPreview } from "./mission-preview";
 import { breakdownDuration, plural, tidyNumber } from "@/lib/format";
 import { useNow } from "@/lib/use-now";
 import type { Accent, MissionTemplate, MissionTone, MissionVisibility } from "@/lib/types";
@@ -59,7 +60,12 @@ function computeRevealAt(birthday: string): string {
 
 interface DraftState {
   templateSlug: string | null;
+  /** Distinguishes "chose to write my own" from "hasn't chosen anything
+      yet" — both leave templateSlug null. */
+  customChosen: boolean;
   title: string;
+  headline: string;
+  impactLine: string;
   story: string;
   icon: string;
   accent: Accent;
@@ -99,7 +105,10 @@ export function MissionBuilder({
 
   const [draft, setDraft] = useState<DraftState>(() => ({
     templateSlug: preset?.slug ?? null,
+    customChosen: false,
     title: preset ? `${preset.title} for my birthday` : "",
+    headline: "",
+    impactLine: "",
     story: "",
     icon: preset?.icon ?? "✨",
     accent: (preset?.accent as Accent) ?? "ember",
@@ -124,6 +133,7 @@ export function MissionBuilder({
       setDraft((d) => ({
         ...d,
         templateSlug: null,
+        customChosen: true,
         title: d.templateSlug ? "" : d.title,
         unitSingular: d.templateSlug ? "" : d.unitSingular,
         unitPlural: d.templateSlug ? "" : d.unitPlural,
@@ -137,6 +147,7 @@ export function MissionBuilder({
     setDraft((d) => ({
       ...d,
       templateSlug: template.slug,
+      customChosen: false,
       title: `${template.title} for my birthday`,
       icon: template.icon,
       accent: template.accent,
@@ -161,7 +172,9 @@ export function MissionBuilder({
   const sprint = timeLeft && timeLeft.days < 2 ? timeLeft : null;
 
   const stepValid = useMemo(() => {
-    if (step === 0) return draft.templateSlug !== null || draft.title.trim().length > 0 || true;
+    // This used to end in `|| true`, which made the check dead code and
+    // let someone reach step 1 having chosen nothing at all.
+    if (step === 0) return draft.templateSlug !== null || draft.customChosen;
     if (step === 1) {
       return (
         draft.title.trim().length >= 3 &&
@@ -180,8 +193,11 @@ export function MissionBuilder({
       const result = await createMissionAction({
         template_slug: draft.templateSlug,
         title: draft.title.trim(),
-        headline: draft.tone === "serious" ? "Join my purpose" : "Join my purpose 🎉",
+        headline:
+          draft.headline.trim() ||
+          (draft.tone === "serious" ? "Join my purpose" : "Join my purpose 🎉"),
         story: draft.story.trim() || undefined,
+        impact_line: draft.impactLine.trim() || undefined,
         icon: draft.icon,
         unit_singular: draft.unitSingular.trim(),
         unit_plural: draft.unitPlural.trim(),
@@ -238,6 +254,13 @@ export function MissionBuilder({
           </li>
         ))}
       </ol>
+
+      {/* The form on the left, the page it is building on the right.
+          Re-keying on `step` is what replays animate-rise; the global
+          prefers-reduced-motion block neutralises it for anyone who
+          asked for less movement. */}
+      <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_21rem]">
+        <div key={step} className="animate-rise min-w-0">
 
       {/* ------------------------------------------------------------- */}
       {/* Step 1 — mission selector (M-01) / custom builder (M-02)       */}
@@ -311,6 +334,19 @@ export function MissionBuilder({
             />
           </Field>
 
+          <Field
+            label="The invitation"
+            optional
+            hint="The small line above the title. Left blank, it says “Join my purpose”."
+          >
+            <Input
+              value={draft.headline}
+              onChange={(e) => set("headline", e.target.value)}
+              maxLength={120}
+              placeholder="Join my purpose 🎉"
+            />
+          </Field>
+
           <div className="grid gap-4 sm:grid-cols-2">
             <Field label="Goal">
               <Input
@@ -356,6 +392,34 @@ export function MissionBuilder({
               />
             </Field>
           </div>
+
+          <Field
+            label="What one of them means"
+            optional
+            hint="One sentence, shown under the tally. “Each blanket keeps someone warm this winter.”"
+          >
+            <Input
+              value={draft.impactLine}
+              onChange={(e) => set("impactLine", e.target.value)}
+              maxLength={160}
+              placeholder={`Each ${draft.unitSingular.trim() || "one"} means…`}
+            />
+          </Field>
+
+          <Field
+            label="People helped by each one"
+            optional
+            hint="Usually 1. Some actions reach more than one person — a blood donation can help three."
+          >
+            <Input
+              type="number"
+              min={0}
+              max={1000}
+              step="0.1"
+              value={draft.livesPerUnit}
+              onChange={(e) => set("livesPerUnit", Math.max(0, Number(e.target.value) || 0))}
+            />
+          </Field>
 
           <Field
             label="Why this mission?"
@@ -576,6 +640,27 @@ export function MissionBuilder({
             {pending ? "Creating…" : "Launch my mission"}
           </Button>
         )}
+      </div>
+        </div>
+
+        {/* Hidden on step 0, where nothing has been chosen yet and the
+            preview would be a card full of placeholders. */}
+        {step > 0 ? (
+          <aside className="hidden lg:block">
+            <MissionPreview
+              icon={draft.icon}
+              title={draft.title}
+              headline={draft.headline}
+              impactLine={draft.impactLine}
+              goal={draft.goal}
+              unitSingular={draft.unitSingular}
+              unitPlural={draft.unitPlural}
+              accent={draft.accent}
+              birthday={draft.birthday}
+              ownerName={ownerName}
+            />
+          </aside>
+        ) : null}
       </div>
     </div>
   );

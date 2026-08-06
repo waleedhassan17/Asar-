@@ -33,7 +33,9 @@ export default async function CreatePage(props: PageProps<"/create">) {
   return (
     <>
       <SiteHeader />
-      <main className="mx-auto w-full max-w-3xl px-5 py-10">
+      {/* Wider than the old 3xl: the builder now carries a live preview
+          column beside the form on large screens. */}
+      <main className="mx-auto w-full max-w-5xl px-5 py-10">
         <MissionBuilder
           templates={(data as MissionTemplate[] | null) ?? []}
           defaultBirthday={profile.birthday}
