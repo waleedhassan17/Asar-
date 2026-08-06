@@ -4,7 +4,7 @@ import { SiteFooter } from "@/components/site/footer";
 import { Badge, Card, LinkButton } from "@/components/ui";
 import { PhotoBackground } from "@/components/brand/photo-background";
 import { GlassCard } from "@/components/brand/glass-card";
-import { createClient } from "@/lib/supabase/server";
+import { createClient, getCurrentProfile } from "@/lib/supabase/server";
 import { isSupabaseConfigured } from "@/lib/env";
 import { HadithBand } from "@/components/brand/hadith-band";
 import { ImpactReel } from "@/components/marketing/impact-reel";
@@ -69,8 +69,17 @@ async function loadTemplates(): Promise<MissionTemplate[]> {
 }
 
 export default async function HomePage() {
-  const templates = await loadTemplates();
+  // Independent reads; no reason to wait for one before the other.
+  const [templates, profile] = await Promise.all([loadTemplates(), getCurrentProfile()]);
   const hero = backgroundByMood("celebration");
+
+  // A signed-in visitor is welcome to read and share the landing page —
+  // they are deliberately not redirected away from it. But sending them
+  // to /register would be a dead end, because middleware bounces them
+  // straight back to /dashboard.
+  const primaryCta = profile
+    ? { label: "Go to dashboard", href: "/dashboard" }
+    : heroCopy.primaryCta;
 
   return (
     <>
@@ -98,8 +107,8 @@ export default async function HomePage() {
               </p>
 
               <div className="mt-9 flex flex-col items-center justify-center gap-3 sm:flex-row">
-                <LinkButton href={heroCopy.primaryCta.href} size="lg">
-                  {heroCopy.primaryCta.label}
+                <LinkButton href={primaryCta.href} size="lg">
+                  {primaryCta.label}
                 </LinkButton>
                 <LinkButton href={heroCopy.secondaryCta.href} size="lg" variant="outline">
                   {heroCopy.secondaryCta.label}
@@ -274,8 +283,8 @@ export default async function HomePage() {
           <p className="mx-auto mt-3 max-w-lg text-ink-2">
             Even a mission started the night before works — Asar switches to a 24-hour sprint.
           </p>
-          <LinkButton href="/register" size="lg" className="mt-7">
-            Start my mission
+          <LinkButton href={primaryCta.href} size="lg" className="mt-7">
+            {primaryCta.label}
           </LinkButton>
         </section>
       </main>

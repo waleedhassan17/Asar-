@@ -2,6 +2,7 @@ import Link from "next/link";
 import { getCurrentProfile } from "@/lib/supabase/server";
 import { Avatar, LinkButton } from "@/components/ui";
 import { Logo } from "@/components/brand/logo";
+import { SignOutButton } from "@/components/site/sign-out-button";
 
 export function Wordmark({ className }: { className?: string }) {
   return (
@@ -55,12 +56,13 @@ export async function SiteHeader() {
                   Admin
                 </Link>
               ) : null}
-              <Link
-                href="/dashboard"
-                className="rounded-full px-3 py-2 text-sm font-medium text-ink-2 transition hover:bg-surface-2 hover:text-ink"
-              >
-                My missions
-              </Link>
+              <SignOutButton className="hidden rounded-full px-3 py-2 text-sm font-medium text-ink-2 transition hover:bg-surface-2 hover:text-ink sm:block" />
+              {/* Signed-in visitors get a primary action of their own. The
+                  old "My missions" text link pointed here too, so this
+                  replaces it rather than sitting beside it. */}
+              <LinkButton href="/dashboard" size="sm">
+                Dashboard
+              </LinkButton>
               <Link
                 href="/settings"
                 className="flex items-center gap-2 rounded-full py-1 pl-1 pr-3 text-sm font-medium text-ink transition hover:bg-surface-2"

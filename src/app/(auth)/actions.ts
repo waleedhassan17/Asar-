@@ -34,6 +34,11 @@ function safeNext(value: FormDataEntryValue | null) {
 }
 
 export async function signUpAction(_prev: AuthState, formData: FormData): Promise<AuthState> {
+  // Resolved before the request so the confirmation email can carry it —
+  // otherwise someone who signed up from a protected page loses their
+  // destination the moment they go via their inbox.
+  const next = safeNext(formData.get("next"));
+
   const parsed = registerSchema.safeParse({
     displayName: formData.get("displayName"),
     email: formData.get("email"),
@@ -55,7 +60,7 @@ export async function signUpAction(_prev: AuthState, formData: FormData): Promis
         display_name: parsed.data.displayName,
         birthday: parsed.data.birthday || null,
       },
-      emailRedirectTo: `${siteUrl()}/auth/callback`,
+      emailRedirectTo: `${siteUrl()}/auth/callback?next=${encodeURIComponent(next)}`,
     },
   });
 
@@ -70,7 +75,7 @@ export async function signUpAction(_prev: AuthState, formData: FormData): Promis
     };
   }
 
-  redirect(safeNext(formData.get("next")));
+  redirect(next);
 }
 
 export async function signInAction(_prev: AuthState, formData: FormData): Promise<AuthState> {
