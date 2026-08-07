@@ -3,7 +3,7 @@
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
-import { siteUrl } from "@/lib/env";
+import { createAdminClient } from "@/lib/supabase/admin";
 
 export interface AuthState {
   error?: string;
@@ -50,29 +50,69 @@ export async function signUpAction(_prev: AuthState, formData: FormData): Promis
     return { error: parsed.error.issues[0]?.message ?? "Please check the form." };
   }
 
-  const supabase = await createClient();
-  const { data, error } = await supabase.auth.signUp({
+  // ------------------------------------------------------------------
+  // No email confirmation.
+  //
+  // The account is created already-confirmed through the service role and
+  // the person is signed straight in, so signing up never sends an email
+  // and never depends on one arriving.
+  //
+  // This is deliberate, and it is the only thing standing between the
+  // product and a dead end: Supabase's built-in mailer only delivers to
+  // addresses inside the project's own organisation and is rate limited to
+  // a couple of messages an hour, so with confirmation on, nobody except
+  // the project owner could finish signing up. Verified: a confirmation
+  // was recorded as sent to a normal Gmail address and never arrived.
+  //
+  // TO RESTORE REAL EMAIL VERIFICATION, once custom SMTP is configured:
+  // delete this block, call supabase.auth.signUp() with
+  //   options: { data: { display_name, birthday },
+  //              emailRedirectTo: `${siteUrl()}/auth/callback?next=...` }
+  // and return the "check your inbox" notice when no session comes back.
+  // The /auth/callback route is still in place and still works.
+  //
+  // Trade-off worth knowing: this path skips the rate limiting that
+  // Supabase applies to its public signup endpoint, so account creation is
+  // only as protected as this server action is.
+  // ------------------------------------------------------------------
+  let admin;
+  try {
+    admin = createAdminClient();
+  } catch {
+    return { error: "Sign-up isn't configured on this deployment." };
+  }
+
+  const { error: createError } = await admin.auth.admin.createUser({
     email: parsed.data.email,
     password: parsed.data.password,
-    options: {
-      // Read by the handle_new_user() trigger to seed the profile row.
-      data: {
-        display_name: parsed.data.displayName,
-        birthday: parsed.data.birthday || null,
-      },
-      emailRedirectTo: `${siteUrl()}/auth/callback?next=${encodeURIComponent(next)}`,
+    email_confirm: true,
+    // Read by the handle_new_user() trigger to seed the profile row.
+    user_metadata: {
+      display_name: parsed.data.displayName,
+      birthday: parsed.data.birthday || null,
     },
   });
 
-  if (error) return { error: error.message };
-
-  // With "confirm email" enabled there is no session yet, so we can't just
-  // drop the person into the dashboard.
-  if (!data.session) {
+  if (createError) {
+    const alreadyExists =
+      createError.status === 422 || /already/i.test(createError.message ?? "");
     return {
-      notice:
-        "Check your inbox — we've sent a link to confirm your email. Open it and you're in.",
+      error: alreadyExists
+        ? "That email already has an account — sign in instead."
+        : createError.message,
     };
+  }
+
+  // Create with the service role, sign in as the person: the session has
+  // to come from the cookie-bound client or the browser gets no cookie.
+  const supabase = await createClient();
+  const { error: signInError } = await supabase.auth.signInWithPassword({
+    email: parsed.data.email,
+    password: parsed.data.password,
+  });
+
+  if (signInError) {
+    return { error: "Your account was created — please sign in." };
   }
 
   redirect(next);
