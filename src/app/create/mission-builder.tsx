@@ -4,8 +4,10 @@ import { useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Badge, Button, Card, Field, Input, Textarea, cx } from "@/components/ui";
 import { useToast } from "@/components/ui/toast";
+import { BirthdayPicker } from "@/components/ui/birthday-picker";
+import { getCountdown, parseLocalDate, revealAtFor } from "@/lib/countdown";
 import { MissionPreview } from "./mission-preview";
-import { breakdownDuration, plural, tidyNumber } from "@/lib/format";
+import { formatDate, plural, tidyNumber } from "@/lib/format";
 import { useNow } from "@/lib/use-now";
 import type { Accent, MissionTemplate, MissionTone, MissionVisibility } from "@/lib/types";
 import { createMissionAction } from "./actions";
@@ -40,22 +42,18 @@ const VISIBILITY_OPTIONS: {
 ];
 
 /**
- * M-04 / M-05. The birthday date is chosen in the visitor's timezone, so
- * the reveal instant has to be computed here rather than on the server:
- * 9am on the day if that's still ahead, otherwise the end of the day, and
- * if the birthday is already over the SQL side drops into sprint mode.
+ * M-04 / M-05. The reveal instant is computed here rather than on the
+ * server because the date is chosen in the visitor's timezone.
+ *
+ * This used to fall through to `now + 24h` whenever the chosen date had
+ * already passed, which is what turned every mission into a sprint. The
+ * picker now only offers real upcoming dates and the maths lives in
+ * lib/countdown.ts, covered by `npm run check:countdown`.
  */
 function computeRevealAt(birthday: string): string {
-  const [y, m, d] = birthday.split("-").map(Number);
-  if (!y || !m || !d) return new Date(Date.now() + 86_400_000).toISOString();
-
-  const morning = new Date(y, m - 1, d, 9, 0, 0, 0);
-  if (morning.getTime() > Date.now()) return morning.toISOString();
-
-  const endOfDay = new Date(y, m - 1, d, 23, 59, 0, 0);
-  if (endOfDay.getTime() > Date.now()) return endOfDay.toISOString();
-
-  return new Date(Date.now() + 24 * 3600 * 1000).toISOString();
+  const target = parseLocalDate(birthday);
+  if (!target) return revealAtFor(new Date(Date.now() + 86_400_000)).toISOString();
+  return revealAtFor(target).toISOString();
 }
 
 interface DraftState {
@@ -164,12 +162,22 @@ export function MissionBuilder({
 
   // Null until mounted, so the preview below simply doesn't render during
   // SSR rather than rendering a countdown from the server's clock.
-  const timeLeft = useMemo(() => {
+  const resolved = useMemo(() => {
     if (!draft.birthday || now === null) return null;
-    return breakdownDuration(new Date(computeRevealAt(draft.birthday)).getTime() - now);
+    const target = parseLocalDate(draft.birthday);
+    if (!target) return null;
+    const revealAt = revealAtFor(target, new Date(now));
+    return {
+      target,
+      countdown: getCountdown(revealAt, new Date(now)),
+      // True when the chosen day is in a later year than today — the
+      // picker makes this visible, but say it in words too.
+      rolled: target.getFullYear() > new Date(now).getFullYear(),
+    };
   }, [draft.birthday, now]);
 
-  const sprint = timeLeft && timeLeft.days < 2 ? timeLeft : null;
+  // Sprint is now only ever "genuinely within 48 hours".
+  const sprint = resolved?.countdown.isSprint ? resolved.countdown : null;
 
   const stepValid = useMemo(() => {
     // This used to end in `|| true`, which made the check dead code and
@@ -491,26 +499,38 @@ export function MissionBuilder({
           </p>
 
           <Field label="Birthday">
-            <Input
-              type="date"
-              value={draft.birthday}
-              onChange={(e) => set("birthday", e.target.value)}
+            <BirthdayPicker
+              value={draft.birthday || null}
+              onChange={(iso) => set("birthday", iso)}
             />
           </Field>
 
-          {draft.birthday && timeLeft ? (
+          {/* Say the resolved date back, so an eleven-month countdown is
+              never a surprise discovered after the mission is live. */}
+          {resolved ? (
+            <Card className="p-5">
+              <p className="text-sm text-ink-2">Reveal on</p>
+              <p className="mt-1 font-display text-2xl text-ink">
+                {formatDate(resolved.target, { day: "numeric", month: "long", year: "numeric" })}
+              </p>
+              <p className="nums mt-2 text-ink-2">{resolved.countdown.label}</p>
+              {resolved.rolled ? (
+                <p className="mt-3 rounded-lg bg-gold-100 px-3 py-2 text-sm text-gold-700">
+                  That date has already passed this year, so your mission counts down to{" "}
+                  {formatDate(resolved.target, { day: "numeric", month: "long", year: "numeric" })}.
+                </p>
+              ) : null}
+            </Card>
+          ) : null}
+
+          {draft.birthday && resolved ? (
             <Card className="p-5">
               {sprint ? (
                 <>
                   <Badge tone="gold">Sprint mode</Badge>
                   <p className="mt-3 text-ink">
                     That&apos;s{" "}
-                    <strong className="nums">
-                      {sprint.days > 0
-                        ? `${sprint.days} ${plural(sprint.days, "day", "days")} and `
-                        : ""}
-                      {sprint.hours} {plural(sprint.hours, "hour", "hours")}
-                    </strong>{" "}
+                    <strong className="nums">{sprint.label.replace(" — sprint", "")}</strong>{" "}
                     away.
                   </p>
                   <p className="mt-2 text-sm text-ink-2">
@@ -522,7 +542,8 @@ export function MissionBuilder({
                 <>
                   <Badge tone="success">Plenty of runway</Badge>
                   <p className="mt-3 text-ink">
-                    <strong className="nums">{timeLeft.days} days</strong> to gather your people.
+                    <strong className="nums">{resolved.countdown.label}</strong> to gather your
+                    people.
                   </p>
                   <p className="mt-2 text-sm text-ink-2">
                     The reveal unlocks at 9am on the day. Nobody sees the “Because of you” summary

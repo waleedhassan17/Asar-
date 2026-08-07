@@ -87,6 +87,60 @@ export const impactReelCopy = {
     "Stock footage, used under licence and credited in the repository. It illustrates the kinds of action people pledge — it is not a record of missions run on Asar.",
 } as const;
 
+/* ------------------------------------------------------------------ */
+/* Purpose                                                             */
+/*                                                                     */
+/* Every sentence here is future-framed on purpose. Asar does not      */
+/* sponsor a single student today and must never imply that it does —  */
+/* "building toward" is the strongest claim available, and the third   */
+/* paragraph says the current state plainly so the first two cannot be */
+/* mistaken for a description of the present.                          */
+/*                                                                     */
+/* The beneficial-knowledge thread deliberately echoes the hadith band */
+/* already on the site, so this reads as the idea Asar came from rather */
+/* than a new promise bolted on.                                       */
+/* ------------------------------------------------------------------ */
+export const purposeStory = {
+  eyebrow: "Our purpose",
+  headline: "Knowledge is the gift that keeps giving.",
+  body: [
+    "Asar is about more than birthdays. The bigger hope behind it is to grow into an organization that helps people who can't afford to study — students held back not by ability, but by money. As we grow, we want to find these students, understand their situations with care, and connect them with people whose giving keeps giving.",
+    "In our faith, one of the three things that keep benefiting a person after they're gone is beneficial knowledge. Helping someone learn is exactly that — a trace (أثر) that outlives us all.",
+    "We're early, and honest about it: today Asar is an awareness and referral platform — we don't hold money, and we don't promise support we can't yet give. But we're building toward that future, one birthday at a time.",
+  ],
+  /** The short version, for the band on the landing page. */
+  band: {
+    eyebrow: "Our purpose",
+    headline: "Knowledge is the gift that keeps giving.",
+    body: "The hope behind Asar is to grow into something that helps students who are held back by money rather than ability. We're not there yet — today this is an awareness and referral platform — but that's what we're building toward.",
+    cta: { label: "Read our story", href: "/about" },
+  },
+} as const;
+
+/* ------------------------------------------------------------------ */
+/* Join us                                                             */
+/*                                                                     */
+/* An invitation from an early project, not a job listing from a       */
+/* staffed company. There is no form and no database behind it — one   */
+/* mailto link is the entire mechanism, which is honest about the size */
+/* of the thing.                                                       */
+/* ------------------------------------------------------------------ */
+
+/** FOUNDER: replace with your real address. This one line is the whole
+ *  contact mechanism — nothing else needs changing. */
+export const FOUNDER_EMAIL = "REPLACE_WITH_FOUNDER_EMAIL@example.com";
+
+export const joinUs = {
+  eyebrow: "Be part of Asar",
+  headline: "We're looking for people who want to help build this.",
+  body: "Asar is just getting started, and it can't grow alone. We're looking for people who want to be part of it — spreading the word, helping check that the causes we list are trustworthy, mentoring students, or helping shape the sponsorship program we're working toward. If that sounds like you, we'd love to hear from you.",
+  cta: {
+    label: "Get in touch",
+    href: `mailto:${FOUNDER_EMAIL}?subject=${encodeURIComponent("I'd like to help build Asar")}`,
+  },
+  micro: "No commitment — just a conversation.",
+} as const;
+
 /** Swap either of these into `heroCopy` wholesale to change the framing. */
 export const heroAlternates = {
   sadaqahJariyah: {

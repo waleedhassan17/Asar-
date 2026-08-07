@@ -304,7 +304,12 @@ begin
       'allow_wish_only', m.allow_wish_only, 'allow_external_give', m.allow_external_give,
       'is_revealed', now() >= m.reveal_at,
       -- M-05: a mission created hours before the birthday runs as a sprint.
-      'is_sprint', (m.reveal_at - m.starts_at) < interval '48 hours',
+      -- Sprint means the reveal is genuinely imminent, not that the
+      -- mission happened to be created close to it. The old form
+      -- compared against starts_at, so a mission created late stayed
+      -- "sprint" for its whole life while a normal mission never
+      -- entered sprint in its final hours.
+      'is_sprint', (m.reveal_at - now()) <= interval '48 hours' and m.reveal_at > now(),
       'created_at', m.created_at
     ),
     'owner', (

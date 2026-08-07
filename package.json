@@ -9,7 +9,8 @@
     "lint": "eslint",
     "db:push": "node scripts/apply-migrations.mjs",
     "typecheck": "tsc --noEmit",
-    "db:bundle": "node scripts/bundle-sql.mjs"
+    "db:bundle": "node scripts/bundle-sql.mjs",
+    "check:countdown": "node --experimental-strip-types scripts/check-countdown.mjs"
   },
   "dependencies": {
     "@remotion/player": "^4.0.506",

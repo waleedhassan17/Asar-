@@ -3,9 +3,10 @@ import Link from "next/link";
 import { LinkButton } from "@/components/ui";
 import { PhotoBackground } from "@/components/brand/photo-background";
 import { GlassCard } from "@/components/brand/glass-card";
+import { JoinBand } from "@/components/marketing/join-band";
 import { Logo } from "@/components/brand/logo";
 import { backgroundByMood } from "@/lib/backgrounds";
-import { aboutStory } from "@/lib/copy";
+import { aboutStory, purposeStory } from "@/lib/copy";
 
 export const metadata: Metadata = {
   title: "Our story",
@@ -88,6 +89,32 @@ export default function AboutPage() {
           </div>
         </div>
       </article>
+
+      {/* -------------------------------------------------------------- */}
+      {/* Our purpose                                                     */}
+      {/*                                                                 */}
+      {/* Sits after the founder's own story so it reads as where that    */}
+      {/* story is going, not as a separate pitch.                        */}
+      {/* -------------------------------------------------------------- */}
+      <section className="border-y border-line bg-surface-2">
+        <div className="mx-auto w-full max-w-3xl px-5 py-16">
+          <p className="text-sm font-semibold tracking-wide text-primary-600 uppercase">
+            {purposeStory.eyebrow}
+          </p>
+          <h2 className="mt-3 font-display text-3xl leading-tight text-balance text-ink sm:text-4xl">
+            {purposeStory.headline}
+          </h2>
+          <div className="mt-6 space-y-5 text-lg leading-relaxed text-ink-2">
+            {purposeStory.body.map((paragraph) => (
+              <p key={paragraph.slice(0, 24)}>{paragraph}</p>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <div className="mx-auto w-full max-w-3xl px-5 pt-16">
+        <JoinBand />
+      </div>
 
       {/* -------------------------------------------------------------- */}
       {/* Closing CTA                                                     */}

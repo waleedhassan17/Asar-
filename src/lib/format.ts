@@ -27,9 +27,22 @@ export function tidyNumber(n: number) {
 }
 
 export function formatDate(value: string | Date, opts?: Intl.DateTimeFormatOptions) {
-  return new Intl.DateTimeFormat("en", opts ?? { day: "numeric", month: "long" }).format(
-    typeof value === "string" ? new Date(value) : value,
-  );
+  // A bare `YYYY-MM-DD` is parsed by `new Date()` as UTC midnight, which
+  // renders as the previous day for anyone west of Greenwich. Date-only
+  // values are built from local components instead; anything with a time
+  // in it is a real instant and is left alone.
+  const date =
+    typeof value === "string"
+      ? /^\d{4}-\d{2}-\d{2}$/.test(value)
+        ? new Date(
+            Number(value.slice(0, 4)),
+            Number(value.slice(5, 7)) - 1,
+            Number(value.slice(8, 10)),
+          )
+        : new Date(value)
+      : value;
+
+  return new Intl.DateTimeFormat("en", opts ?? { day: "numeric", month: "long" }).format(date);
 }
 
 export function relativeTime(value: string | Date) {

@@ -8,6 +8,7 @@ import { createClient, getCurrentProfile } from "@/lib/supabase/server";
 import { isSupabaseConfigured } from "@/lib/env";
 import { HadithBand } from "@/components/brand/hadith-band";
 import { ImpactReel } from "@/components/marketing/impact-reel";
+import { PurposeBand } from "@/components/marketing/purpose-band";
 import { backgroundByMood } from "@/lib/backgrounds";
 import { heroCopy } from "@/lib/copy";
 import type { MissionTemplate } from "@/lib/types";
@@ -121,6 +122,11 @@ export default async function HomePage() {
         </PhotoBackground>
 
         <HadithBand />
+
+        {/* Directly after the hadith on purpose: that band is about
+            beneficial knowledge, and this is what Asar wants to do with
+            it. Links out rather than repeating the whole story here. */}
+        <PurposeBand className="border-b border-line bg-surface-2" />
 
         {/* ---------------------------------------------------------- */}
         {/* Reframing (spec §11)                                        */}
