@@ -8,7 +8,9 @@ import { SignOutButton } from "@/components/site/sign-out-button";
 import { Card, LinkButton } from "@/components/ui";
 import { Logo } from "@/components/brand/logo";
 import { GlassCard } from "@/components/brand/glass-card";
+import Image from "next/image";
 import { ReelVideo } from "@/components/marketing/reel-video";
+import { backgroundFor } from "@/lib/backgrounds";
 import { MissionCard, MissionCardSkeleton } from "@/components/mission/mission-card";
 import { NextReveal } from "./next-reveal";
 import { createClient, getCurrentProfile } from "@/lib/supabase/server";
@@ -48,24 +50,57 @@ export default async function DashboardPage() {
       ? `Assalamu alaikum, ${firstName}`
       : "Welcome back";
 
+  // Stable per person rather than random, so the dashboard looks the same
+  // every time they open it — a header that changes on refresh reads as a
+  // glitch, not as variety.
+  const header = backgroundFor(profile.id);
+
   return (
     <>
       <SiteHeader />
 
-      <main className="mx-auto w-full max-w-5xl px-5 py-10">
-        <div className="flex flex-wrap items-end justify-between gap-4 border-b border-line pb-6">
-          <div>
-            <h1 className="font-display text-3xl text-ink sm:text-[2.25rem]">{greeting}</h1>
-            <p className="mt-1.5 text-ink-2">
-              Every mission you&apos;ve started, and how it&apos;s going.
-            </p>
-          </div>
-          <div className="flex items-center gap-2">
-            <SignOutButton />
-            <LinkButton href="/create">Start a mission</LinkButton>
+      {/* A band behind the greeting, and nothing behind the content.
+          A photograph under a whole dashboard costs legibility on every
+          card and number for no gain — but the greeting is the one part
+          of this page that is about the person rather than the data, and
+          it can carry an image. `scrim-soft` fades the photo into the
+          page, so the heading stays ink on near-white and the cards below
+          begin on clean white. */}
+      <div className="relative isolate overflow-hidden border-b border-line">
+        <Image
+          src={header.src}
+          alt=""
+          fill
+          sizes="100vw"
+          priority
+          className="object-cover object-center"
+        />
+        {/* One scrim, not three. Stacking washes made the photograph so
+            faint it read as a printing artefact rather than a decision —
+            the image is allowed to be visible, and legibility is bought
+            with a single strong white gradient instead. */}
+        <div
+          aria-hidden
+          className="absolute inset-0 bg-gradient-to-b from-canvas/85 via-canvas/75 to-canvas"
+        />
+
+        <div className="relative mx-auto w-full max-w-5xl px-5 pt-14 pb-10">
+          <div className="flex flex-wrap items-end justify-between gap-4">
+            <div>
+              <h1 className="font-display text-3xl text-ink sm:text-[2.25rem]">{greeting}</h1>
+              <p className="mt-1.5 text-ink-2">
+                Every mission you&apos;ve started, and how it&apos;s going.
+              </p>
+            </div>
+            <div className="flex items-center gap-2">
+              <SignOutButton />
+              <LinkButton href="/create">Start a mission</LinkButton>
+            </div>
           </div>
         </div>
+      </div>
 
+      <main className="mx-auto w-full max-w-5xl px-5 pt-8 pb-10">
         <Suspense fallback={<DashboardSkeleton />}>
           <MissionSections />
         </Suspense>
