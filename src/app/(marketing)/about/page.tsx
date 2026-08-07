@@ -112,7 +112,7 @@ export default function AboutPage() {
         </div>
       </section>
 
-      <div className="mx-auto w-full max-w-3xl px-5 pt-16">
+      <div id="join" className="mx-auto w-full max-w-3xl scroll-mt-24 px-5 pt-16">
         <JoinBand />
       </div>
 

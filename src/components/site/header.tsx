@@ -1,8 +1,9 @@
 import Link from "next/link";
 import { getCurrentProfile } from "@/lib/supabase/server";
-import { Avatar, LinkButton, cx } from "@/components/ui";
+import { Avatar, LinkButton } from "@/components/ui";
 import { Logo } from "@/components/brand/logo";
 import { SignOutButton } from "@/components/site/sign-out-button";
+import { NavLink } from "@/components/site/nav-link";
 
 export function Wordmark({ className }: { className?: string }) {
   return (
@@ -25,43 +26,29 @@ export async function SiteHeader() {
               account. Signed in, it competes for width with Dashboard and
               the avatar and loses — on a 360px phone that overflowed and
               clipped the avatar. It comes back at sm. */}
-          <Link
-            href="/give"
-            className={cx(
-              "rounded-full px-2.5 py-2 text-sm font-medium whitespace-nowrap text-ink-2 transition hover:bg-surface-2 hover:text-ink sm:px-3",
-              profile && "hidden sm:block",
-            )}
-          >
+          <NavLink href="/give" className={profile ? "hidden sm:block" : undefined}>
             Give
-          </Link>
-          <Link
-            href="/how-it-works"
-            className="hidden rounded-full px-3 py-2 text-sm font-medium whitespace-nowrap text-ink-2 transition hover:bg-surface-2 hover:text-ink sm:block"
-          >
+          </NavLink>
+          <NavLink href="/how-it-works" className="hidden sm:block">
             How it works
-          </Link>
-          <Link
-            href="/about"
-            className="hidden rounded-full px-3 py-2 text-sm font-medium whitespace-nowrap text-ink-2 transition hover:bg-surface-2 hover:text-ink md:block"
-          >
+          </NavLink>
+          <NavLink href="/about" className="hidden md:block">
             Our story
-          </Link>
-          <Link
-            href="/transparency"
-            className="hidden rounded-full px-3 py-2 text-sm font-medium whitespace-nowrap text-ink-2 transition hover:bg-surface-2 hover:text-ink sm:block"
-          >
+          </NavLink>
+          <NavLink href="/transparency" className="hidden sm:block">
             Transparency
-          </Link>
+          </NavLink>
+
+          {/* Marketing nav on one side of this hairline, account actions on
+              the other. They were an undifferentiated row before, so "Sign
+              out" sat as a peer of "Give" — two different kinds of thing
+              reading as one list. */}
+          <span aria-hidden className="mx-1 hidden h-5 w-px bg-line sm:block" />
 
           {profile ? (
             <>
               {profile.is_admin ? (
-                <Link
-                  href="/admin"
-                  className="rounded-full px-2.5 py-2 text-sm font-medium whitespace-nowrap text-ink-2 transition hover:bg-surface-2 hover:text-ink sm:px-3"
-                >
-                  Admin
-                </Link>
+                <NavLink href="/admin">Admin</NavLink>
               ) : null}
               <SignOutButton className="hidden rounded-full px-3 py-2 text-sm font-medium whitespace-nowrap text-ink-2 transition hover:bg-surface-2 hover:text-ink sm:block" />
               {/* Signed-in visitors get a primary action of their own. The
@@ -81,12 +68,7 @@ export async function SiteHeader() {
             </>
           ) : (
             <>
-              <Link
-                href="/login"
-                className="rounded-full px-2.5 py-2 text-sm font-medium whitespace-nowrap text-ink-2 transition hover:bg-surface-2 hover:text-ink sm:px-3"
-              >
-                Sign in
-              </Link>
+              <NavLink href="/login">Sign in</NavLink>
               <LinkButton href="/register" size="sm">
                 {/* "Start a mission" does not fit beside the wordmark on a
                     360px phone. The short label carries the same meaning
