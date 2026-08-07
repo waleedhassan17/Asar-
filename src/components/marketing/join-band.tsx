@@ -26,8 +26,6 @@ export function JoinBand({ className }: { className?: string }) {
         <p className="mx-auto mt-4 max-w-2xl leading-relaxed text-ink-2">{joinUs.body}</p>
 
         <ContactForm className="mt-7" />
-
-        <p className="mt-4 text-sm text-ink-3">{joinUs.micro}</p>
       </div>
     </section>
   );

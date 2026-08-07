@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { Logo } from "@/components/brand/logo";
-import { joinUs } from "@/lib/copy";
 
 /**
  * The footer was one flat row of six links of equal weight, with the
@@ -49,7 +48,6 @@ export function SiteFooter() {
             <p className="mt-4 text-sm leading-relaxed text-ink-2">
               A birthday is a good excuse to do something that lasts.
             </p>
-            <p className="mt-4 text-sm text-ink-3">{joinUs.micro}</p>
           </div>
 
           {COLUMNS.map((column) => (

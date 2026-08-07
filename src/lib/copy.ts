@@ -138,7 +138,6 @@ export const joinUs = {
     label: "Get in touch",
     href: `mailto:${FOUNDER_EMAIL}?subject=${encodeURIComponent("I'd like to help build Asar")}`,
   },
-  micro: "No commitment — just a conversation with Muhammad Waleed Hassan, who started Asar.",
 } as const;
 
 /** Swap either of these into `heroCopy` wholesale to change the framing. */
