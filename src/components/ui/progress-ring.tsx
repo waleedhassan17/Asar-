@@ -55,7 +55,12 @@ export function ProgressRing({
           cy={size / 2}
           r={r}
           fill="none"
-          stroke={complete ? "var(--color-gold-500)" : "var(--color-primary-500)"}
+          // The mission's own accent, not the brand primary — the ring sits
+          // among elements that all follow data-accent, and evergreen in the
+          // middle of a violet mission reads as a mistake. `--accent`
+          // defaults to primary-500 at :root, so anything outside a mission
+          // context looks exactly as it did.
+          stroke={complete ? "var(--color-gold-500)" : "var(--accent)"}
           strokeWidth={stroke}
           strokeLinecap="round"
           strokeDasharray={circumference}

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Avatar, Badge, Card, Progress } from "@/components/ui";
+import { ProgressRing } from "@/components/ui/progress-ring";
 import { CountUp } from "@/components/ui/count-up";
 import { Confetti } from "@/components/ui/confetti";
 import { plural, tidyNumber } from "@/lib/format";
@@ -44,6 +45,13 @@ export function LiveTally({
 
   const unitsLabel = plural(stats.confirmed_units, mission.unit_singular, mission.unit_plural);
 
+  // mission_stats clamps goal_percent to 100, so passing the goal is
+  // invisible in that column. Recomputed here so an overshoot can be
+  // celebrated instead of looking like a mission that merely finished.
+  const rawPercent = Math.round(
+    (stats.confirmed_units / Math.max(1, mission.goal_amount)) * 100,
+  );
+
   return (
     <>
       <Confetti fire={celebrate ? burst : 0} />
@@ -59,21 +67,48 @@ export function LiveTally({
           className="pointer-events-none absolute -right-20 -top-24 h-64 w-64 rounded-full bg-accent-wash opacity-70 blur-2xl"
         />
 
-        <div className="relative">
+        <div className="relative flex flex-col gap-6 sm:flex-row sm:items-start">
+          {/* The ring finally appears on the page it was built for — it
+              existed but was only ever used in the dashboard grid. */}
+          <ProgressRing
+            percent={stats.goal_percent}
+            size={132}
+            stroke={9}
+            label={`${rawPercent}% of the ${mission.goal_amount} ${mission.unit_plural} goal`}
+            className="shrink-0 self-center sm:self-auto"
+          >
+            <span className="block text-center">
+              <CountUp
+                value={stats.confirmed_units}
+                className="nums block font-display text-3xl leading-none text-ink"
+              />
+              <span className="mt-0.5 block text-[0.7rem] text-ink-3">
+                of {tidyNumber(mission.goal_amount)}
+              </span>
+            </span>
+          </ProgressRing>
+
+          <div className="min-w-0 flex-1">
           <p className="text-sm font-medium text-ink-2">
-            {stats.lives_impacted > 0 ? "So far, together" : "Nothing yet — be the first"}
+            {stats.confirmed_units > 0 ? "So far, together" : "Nothing yet — be the first"}
           </p>
 
-          <p className="mt-2 font-display text-[2.75rem] leading-none text-ink sm:text-6xl">
-            <CountUp value={stats.lives_impacted} className="nums text-accent" />{" "}
-            <span className="text-ink">
-              {plural(stats.lives_impacted, "life", "lives")} touched
-            </span>
+          {/* Units lead, in the owner's own words — "32 blankets", not
+              "32 lives touched". Lives become the secondary framing. */}
+          <p className="mt-2 font-display text-[2.5rem] leading-none text-ink sm:text-5xl">
+            <CountUp value={stats.confirmed_units} className="nums text-accent" />{" "}
+            <span className="text-ink">{unitsLabel}</span>
           </p>
 
           <p className="mt-3 text-ink-2">
-            <strong className="nums text-ink">{tidyNumber(stats.confirmed_units)}</strong>{" "}
-            {unitsLabel} confirmed
+            {stats.lives_impacted > 0 ? (
+              <>
+                <strong className="nums text-ink">{tidyNumber(stats.lives_impacted)}</strong>{" "}
+                {plural(stats.lives_impacted, "life", "lives")} touched
+              </>
+            ) : (
+              <>Every one of them counts.</>
+            )}
             {stats.promised_units > 0 ? (
               <>
                 {" "}
@@ -81,6 +116,10 @@ export function LiveTally({
               </>
             ) : null}
           </p>
+
+          {mission.impact_line ? (
+            <p className="mt-3 text-sm text-ink-2 italic">“{mission.impact_line}”</p>
+          ) : null}
 
           <Progress
             percent={stats.goal_percent}
@@ -90,15 +129,17 @@ export function LiveTally({
 
           <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-ink-2">
             <span className="nums">
-              {stats.goal_percent}% of {tidyNumber(mission.goal_amount)} {mission.unit_plural}
+              {rawPercent}% of {tidyNumber(mission.goal_amount)} {mission.unit_plural}
             </span>
             {/* D-06 momentum, phrased as arrivals not as a countdown of what's missing */}
+            {rawPercent > 100 ? <Badge tone="gold">Past the goal 🎉</Badge> : null}
             {stats.joined_last_24h > 0 ? (
               <Badge tone="success">
                 {stats.joined_last_24h} {plural(stats.joined_last_24h, "person", "people")} joined in
                 the last 24 hours
               </Badge>
             ) : null}
+          </div>
           </div>
         </div>
       </Card>
