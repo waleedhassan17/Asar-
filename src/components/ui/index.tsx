@@ -11,7 +11,11 @@ type ButtonVariant = "primary" | "accent" | "soft" | "ghost" | "outline";
 type ButtonSize = "sm" | "md" | "lg";
 
 const BUTTON_BASE =
-  "inline-flex items-center justify-center gap-2 rounded-full font-semibold transition " +
+  // whitespace-nowrap matters more than it looks: every size below sets a
+  // fixed height, so a label that wraps to two lines overflows its own
+  // pill instead of growing it. That is what "Start a mission" was doing
+  // in a narrow header.
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-full font-semibold transition " +
   "disabled:opacity-45 disabled:pointer-events-none active:scale-[0.98] select-none";
 
 const BUTTON_VARIANTS: Record<ButtonVariant, string> = {
