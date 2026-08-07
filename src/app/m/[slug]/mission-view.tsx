@@ -10,6 +10,7 @@ import { WishWall } from "@/components/mission/wish-wall";
 import { CategoryBreakdown, ContributorStack, LiveTally } from "@/components/mission/tally";
 import { ShareBar } from "@/components/mission/share-bar";
 import { TRACK_META, formatDate, toneCopy } from "@/lib/format";
+import { clipForMission } from "@/lib/mission-clips";
 import { getVisitorHash, updatePledgeStatus, type StoredPledge } from "@/lib/visitor";
 import { usePledges } from "@/lib/use-pledges";
 import { OrgCard } from "@/components/directory/org-card";
@@ -48,6 +49,7 @@ export function MissionView({
   const [sheetTrack, setSheetTrack] = useState<ContributionTrack | null>(null);
 
   const { mission, stats, owner } = page;
+  const clip = clipForMission(mission.icon);
   const pledges = usePledges(mission.slug);
   const copy = toneCopy(mission.tone);
   const ownerName = owner?.display_name ?? "the birthday person";
@@ -93,7 +95,24 @@ export function MissionView({
       {/* ------------------------------------------------------------ */}
       {/* Hero                                                          */}
       {/* ------------------------------------------------------------ */}
-      <section className="relative overflow-hidden border-b border-line">
+      <section className="relative isolate overflow-hidden border-b border-line">
+        {/* The mission's own subject behind its own hero, matched on the
+            icon exactly as the dashboard cards are — a page about meals
+            opens on a meal. The poster frame rather than the video: this
+            sits above the live tally, and motion there pulls the eye away
+            from the number the page exists to show. */}
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={clip.poster}
+          alt=""
+          aria-hidden
+          className="absolute inset-0 h-full w-full object-cover"
+        />
+        <div
+          aria-hidden
+          className="absolute inset-0 bg-gradient-to-b from-canvas/88 via-canvas/80 to-canvas"
+        />
+
         <div
           aria-hidden
           className="animate-drift pointer-events-none absolute -top-52 left-1/2 h-[32rem] w-[46rem] -translate-x-1/2 rounded-full opacity-60 blur-3xl"
