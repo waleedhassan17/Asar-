@@ -6,6 +6,8 @@ import { Badge, Card, cx } from "@/components/ui";
 import { ProgressRing } from "@/components/ui/progress-ring";
 import { useToast } from "@/components/ui/toast";
 import { formatDate, plural, tidyNumber } from "@/lib/format";
+import { clipForMission } from "@/lib/mission-clips";
+import { ReelVideo } from "@/components/marketing/reel-video";
 import { useNow } from "@/lib/use-now";
 import type { MissionSummary } from "@/lib/types";
 
@@ -44,6 +46,7 @@ export function MissionCard({
 }) {
   const toast = useToast();
   const [copied, setCopied] = useState(false);
+  const clip = clipForMission(mission.icon);
 
   // The clock is a subscription, not a render-time read: identical markup
   // on the server, then the real countdown once mounted.
@@ -98,11 +101,29 @@ export function MissionCard({
   }
 
   return (
-    <Card data-accent={mission.accent} className="flex h-full flex-col p-5">
+    <Card data-accent={mission.accent} className="flex h-full flex-col overflow-hidden p-0">
       <Link
         href={`/m/${mission.slug}${mission.visibility === "public" ? "" : `?t=${mission.share_token}`}`}
-        className="group flex flex-1 gap-4 rounded-md"
+        className="group flex flex-1 flex-col rounded-md"
       >
+        {/* A strip of the mission's own subject. Matched on its icon, so a
+            mission about meals shows a meal — the card is recognisable at
+            a glance instead of being another white rectangle. */}
+        <div className="relative h-24 shrink-0 overflow-hidden">
+          <ReelVideo src={clip.src} poster={clip.poster} />
+          <div
+            aria-hidden
+            className="absolute inset-0 bg-gradient-to-t from-surface via-surface/25 to-transparent"
+          />
+          <span
+            aria-hidden
+            className="absolute bottom-2 left-4 text-2xl drop-shadow-[0_1px_3px_rgba(0,0,0,0.35)]"
+          >
+            {mission.icon}
+          </span>
+        </div>
+
+        <div className="flex flex-1 gap-4 p-5 pt-3">
         <ProgressRing percent={percent} size={78} label={`${Math.round(percent)}% of the goal`}>
           <span className="nums font-display text-lg font-semibold text-ink">
             {tidyNumber(confirmed)}
@@ -110,10 +131,7 @@ export function MissionCard({
         </ProgressRing>
 
         <div className="min-w-0 flex-1">
-          <div className="flex items-start justify-between gap-2">
-            <span className="text-2xl" aria-hidden>
-              {mission.icon}
-            </span>
+          <div className="flex items-start justify-end gap-2">
             <div className="flex items-center gap-1.5">
               <VisibilityIcon visibility={mission.visibility} />
               {mission.is_revealed ? (
@@ -138,9 +156,10 @@ export function MissionCard({
             <span className="text-xs text-ink-3">{formatDate(mission.birthday_date)}</span>
           </div>
         </div>
+        </div>
       </Link>
 
-      <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-2 border-t border-line pt-3 text-sm">
+      <div className="flex flex-wrap items-center gap-x-4 gap-y-2 border-t border-line px-5 py-3 text-sm">
         <Link href={`/m/${mission.slug}`} className="text-ink-2 transition hover:text-primary-600">
           View
         </Link>

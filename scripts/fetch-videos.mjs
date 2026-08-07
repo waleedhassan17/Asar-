@@ -24,7 +24,7 @@
  * Requires ffmpeg and ffprobe on PATH.
  */
 import { execFileSync } from "node:child_process";
-import { mkdirSync, writeFileSync, statSync } from "node:fs";
+import { existsSync, mkdirSync, writeFileSync, statSync } from "node:fs";
 import { join } from "node:path";
 
 const KEY = process.env.PEXELS_API_KEY;
@@ -71,6 +71,44 @@ const CLIPS = [
     alt: "A hand pointing to a page of a notebook on a desk",
     caption: "Care",
   },
+
+  // ------------------------------------------------------------------
+  // Mission-category clips.
+  //
+  // These are matched to a mission's own subject on the dashboard, so a
+  // mission about meals shows food and one about trees shows planting.
+  // That makes the footage information rather than decoration — which is
+  // the only reason to put video on a dashboard at all.
+  //
+  // Same selection rules as above. The health clip is deliberately two
+  // hands holding another pair, not a needle or a blood bag: a mission to
+  // find blood donors is about care, and the clinical framing reads as
+  // illness. Nothing here shows a face.
+  // ------------------------------------------------------------------
+  {
+    id: 7522356,
+    name: "mission-health",
+    seconds: 6,
+    width: 640,
+    alt: "Two hands resting on an older person's hand",
+    caption: "Health",
+  },
+  {
+    id: 5602279,
+    name: "mission-general",
+    seconds: 6,
+    width: 640,
+    alt: "Warm candle flames out of focus",
+    caption: "General",
+  },
+  {
+    id: 2236003,
+    name: "mission-water",
+    seconds: 6,
+    width: 640,
+    alt: "Water running from a tap",
+    caption: "Water",
+  },
 ];
 
 const UA = "asar-fetch-videos (+https://github.com/waleedhassan17/Asar-)";
@@ -102,8 +140,27 @@ async function main() {
   mkdirSync(OUT, { recursive: true });
   const credits = [];
 
+  // Existing clips are left alone so a re-run only fetches what is
+  // missing — re-downloading everything makes the script hostage to a
+  // flaky connection for footage that is already on disk. FORCE=1 to
+  // rebuild the lot.
+  const force = process.env.FORCE === "1";
+
   for (const clip of CLIPS) {
+    // Metadata is fetched even for clips already on disk: it costs one
+    // small request and it is what keeps CREDITS.md accurate. Only the
+    // download and re-encode are skipped.
     const video = await pexels(clip.id);
+    credits.push(
+      `| \`${clip.name}.mp4\` | [Pexels #${clip.id}](${video.url}) | ${video.user.name} |`,
+    );
+
+    const mp4Path = join(OUT, `${clip.name}.mp4`);
+    if (!force && existsSync(mp4Path)) {
+      console.log(`\n${clip.name} — already present, skipping download`);
+      continue;
+    }
+
     const source = bestSource(video);
     console.log(`\n${clip.name} — ${source.width}x${source.height}, ${video.duration}s`);
 
@@ -137,10 +194,6 @@ async function main() {
 
     execFileSync("rm", ["-f", raw]);
     console.log(`  -> ${clip.name}.mp4 ${mb(mp4)} MB · ${clip.name}.jpg ${mb(jpg)} MB`);
-
-    credits.push(
-      `| \`${clip.name}.mp4\` | [Pexels #${clip.id}](${video.url}) | ${video.user.name} |`,
-    );
   }
 
   writeFileSync(

@@ -8,7 +8,7 @@ import { SignOutButton } from "@/components/site/sign-out-button";
 import { Card, LinkButton } from "@/components/ui";
 import { Logo } from "@/components/brand/logo";
 import { GlassCard } from "@/components/brand/glass-card";
-import { PhotoBackground } from "@/components/brand/photo-background";
+import { ReelVideo } from "@/components/marketing/reel-video";
 import { MissionCard, MissionCardSkeleton } from "@/components/mission/mission-card";
 import { NextReveal } from "./next-reveal";
 import { createClient, getCurrentProfile } from "@/lib/supabase/server";
@@ -101,8 +101,15 @@ async function MissionSections() {
   if (missions.length === 0) {
     return (
       <div className="mt-10 overflow-hidden rounded-card border border-line">
-        <PhotoBackground src="/backgrounds/hero-01.jpg" alt="" className="min-h-[26rem]">
-          <div className="flex min-h-[26rem] items-center justify-center px-5 py-14">
+        <div className="relative isolate min-h-[26rem] overflow-hidden">
+          {/* A first-run dashboard has no numbers to show, so this is the
+              one place on it where footage is the content rather than a
+              distraction from it. */}
+          <div className="absolute inset-0">
+            <ReelVideo src="/videos/mission-general.mp4" poster="/videos/mission-general.jpg" />
+          </div>
+          <div aria-hidden className="absolute inset-0 scrim-hero" />
+          <div className="relative flex min-h-[26rem] items-center justify-center px-5 py-14">
             <GlassCard className="max-w-md text-center">
               <Logo variant="tile" size={56} className="mx-auto" />
               <p className="mt-5 font-display text-2xl leading-snug text-balance text-ink">
@@ -116,7 +123,7 @@ async function MissionSections() {
               </LinkButton>
             </GlassCard>
           </div>
-        </PhotoBackground>
+        </div>
       </div>
     );
   }

@@ -3,6 +3,8 @@ import { Badge, LinkButton, Progress } from "@/components/ui";
 import { Countdown } from "@/components/mission/countdown";
 import { plural, tidyNumber } from "@/lib/format";
 import type { MissionSummary } from "@/lib/types";
+import { clipForMission } from "@/lib/mission-clips";
+import { ReelVideo } from "@/components/marketing/reel-video";
 
 /**
  * The one mission whose day comes first, given the room it deserves.
@@ -22,12 +24,25 @@ export function NextReveal({ mission, origin }: { mission: MissionSummary; origi
   const percent = stats?.goal_percent ?? 0;
 
   const href = `/m/${mission.slug}${mission.visibility === "public" ? "" : `?t=${mission.share_token}`}`;
+  const clip = clipForMission(mission.icon);
 
   return (
     <section
       data-accent={mission.accent}
-      className="relative overflow-hidden rounded-card border border-line bg-surface p-6 shadow-soft sm:p-7"
+      className="relative overflow-hidden rounded-card border border-line bg-surface shadow-soft lg:flex"
     >
+      {/* The clip sits in its own column rather than behind the text. A
+          video under live numbers makes them harder to read, and the
+          numbers are what the owner opened the dashboard for. */}
+      <div className="relative h-32 shrink-0 overflow-hidden lg:order-2 lg:h-auto lg:w-64">
+        <ReelVideo src={clip.src} poster={clip.poster} />
+        <div
+          aria-hidden
+          className="absolute inset-0 bg-gradient-to-t from-surface via-surface/20 to-transparent lg:bg-gradient-to-r"
+        />
+      </div>
+
+      <div className="relative min-w-0 flex-1 p-6 sm:p-7 lg:order-1">
       {/* A breath of the mission's own colour, kept well under the text. */}
       <div
         aria-hidden
@@ -74,6 +89,7 @@ export function NextReveal({ mission, origin }: { mission: MissionSummary; origi
       <p className="relative mt-4 truncate text-xs text-ink-3" title={`${origin}${href}`}>
         Share link · {origin.replace(/^https?:\/\//, "")}/m/{mission.slug}
       </p>
+      </div>
     </section>
   );
 }

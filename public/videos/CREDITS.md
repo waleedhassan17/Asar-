@@ -16,3 +16,6 @@ All clips are trimmed, scaled and stripped of audio. Each has a matching
 | `impact-plant.mp4` | [Pexels #4238310](https://www.pexels.com/video/video-of-person-planting-4238310/) | https://kaboompics.com/ |
 | `impact-feed.mp4` | [Pexels #6894121](https://www.pexels.com/video/distributing-packed-meals-6894121/) | Julia M Cameron |
 | `impact-care.mp4` | [Pexels #8617052](https://www.pexels.com/video/teacher-teaching-a-student-8617052/) | Yan Krukau |
+| `mission-health.mp4` | [Pexels #7522356](https://www.pexels.com/video/a-person-checking-pulse-of-the-patient-7522356/) | Kampus Production |
+| `mission-general.mp4` | [Pexels #5602279](https://www.pexels.com/video/lighten-candles-5602279/) | Yaroslav Shuraev |
+| `mission-water.mp4` | [Pexels #2236003](https://www.pexels.com/video/tap-water-2236003/) | Luis Quintero |
