@@ -176,6 +176,7 @@ begin
 
   insert into public.missions (
     owner_id, template_id, slug, title, headline, story, impact_line, icon,
+    currency, beneficiary,
     unit_singular, unit_plural, action_verb, lives_per_unit, increments,
     goal_amount, birthday_date, starts_at, reveal_at,
     visibility, tone, accent, allow_wish_only, allow_external_give, status
@@ -187,6 +188,8 @@ begin
     left(coalesce(nullif(trim(p ->> 'headline'), ''), 'Join my purpose'), 120),
     left(nullif(trim(p ->> 'story'), ''), 2000),
     left(nullif(trim(p ->> 'impact_line'), ''), 160),
+    nullif(upper(trim(p ->> 'currency')), ''),
+    left(nullif(trim(p ->> 'beneficiary'), ''), 160),
     coalesce(nullif(p ->> 'icon', ''), t_icon, '🎁'),
     left(coalesce(nullif(p ->> 'unit_singular', ''), t_unit_s, 'action'), 40),
     left(coalesce(nullif(p ->> 'unit_plural', ''), t_unit_p, 'actions'), 40),
@@ -296,6 +299,7 @@ begin
     'mission', jsonb_build_object(
       'id', m.id, 'slug', m.slug, 'title', m.title, 'headline', m.headline,
       'story', m.story, 'impact_line', m.impact_line, 'icon', m.icon,
+      'currency', m.currency, 'beneficiary', m.beneficiary,
       'unit_singular', m.unit_singular, 'unit_plural', m.unit_plural,
       'action_verb', m.action_verb, 'lives_per_unit', m.lives_per_unit,
       'increments', m.increments, 'goal_amount', m.goal_amount,
@@ -811,6 +815,7 @@ begin
       'id', m.id, 'slug', m.slug, 'title', m.title, 'icon', m.icon,
       'unit_singular', m.unit_singular, 'unit_plural', m.unit_plural,
       'impact_line', m.impact_line,
+      'currency', m.currency, 'beneficiary', m.beneficiary,
       'goal_amount', m.goal_amount, 'reveal_at', m.reveal_at, 'tone', m.tone,
       'accent', m.accent, 'birthday_date', m.birthday_date
     ),

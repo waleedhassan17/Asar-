@@ -20,7 +20,7 @@ export function HadithBand({ showArabic = true }: { showArabic?: boolean }) {
           <p
             lang="ar"
             dir="rtl"
-            className="font-display text-xl leading-[2.1] text-ink sm:text-2xl"
+            className="font-arabic text-2xl text-ink sm:text-3xl"
           >
             {hadith.arabic}
           </p>
