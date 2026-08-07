@@ -7,6 +7,7 @@ import { Confetti } from "@/components/ui/confetti";
 import { CountUp } from "@/components/ui/count-up";
 import { Countdown } from "@/components/mission/countdown";
 import { ShareCard } from "@/components/reveal/share-card";
+import { ImpactClip } from "@/components/reveal/impact-clip";
 import { describeContribution, formatDate, plural, tidyNumber, toneCopy } from "@/lib/format";
 import type { RevealPayload } from "@/lib/types";
 
@@ -311,6 +312,12 @@ export function RevealView({ reveal, url }: { reveal: RevealPayload; url: string
         {/* ---------------------------------------------------------- */}
         {/* R-04 — shareable card                                        */}
         {/* ---------------------------------------------------------- */}
+        {/* The clip first, the card underneath it: the clip is the thing
+            worth watching, the card is the thing that always works. */}
+        <div className="mb-4">
+          <ImpactClip reveal={reveal} />
+        </div>
+
         <Card className="p-7">
           <h2 className="text-center font-display text-2xl text-ink">Share what happened</h2>
           <p className="mx-auto mt-2 max-w-md text-center text-sm text-ink-2">

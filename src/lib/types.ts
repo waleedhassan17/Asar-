@@ -181,6 +181,7 @@ export interface RevealPayload {
     | "slug"
     | "title"
     | "icon"
+    | "impact_line"
     | "unit_singular"
     | "unit_plural"
     | "goal_amount"
