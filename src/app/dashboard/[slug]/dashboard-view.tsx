@@ -10,6 +10,8 @@ import { CategoryBreakdown, ContributorStack, LiveTally } from "@/components/mis
 import { ShareBar } from "@/components/mission/share-bar";
 import { WishWall } from "@/components/mission/wish-wall";
 import { formatDate, plural, relativeTime, tidyNumber } from "@/lib/format";
+import { parseLocalDate } from "@/lib/countdown";
+import { clipForMission } from "@/lib/mission-clips";
 import { OrgCard } from "@/components/directory/org-card";
 import { domainOf } from "@/lib/directory";
 import type {
@@ -74,6 +76,8 @@ export function DashboardView({
     return () => clearInterval(tick);
   }, [refresh]);
 
+  const clip = clipForMission(mission.icon);
+
   return (
     <div data-accent={mission.accent}>
       <Confetti fire={celebrate} pieces={70} />
@@ -81,8 +85,24 @@ export function DashboardView({
       {/* ------------------------------------------------------------ */}
       {/* Header                                                        */}
       {/* ------------------------------------------------------------ */}
-      <div className="border-b border-line bg-surface-2/60">
-        <div className="mx-auto w-full max-w-5xl px-5 py-8">
+      {/* The mission's own footage behind its manage header, matched on the
+          icon like every other surface. Poster frame, not video: the page
+          below is a live tally and a chart, and motion above them competes
+          with the numbers. Banded — it is gone before the first card. */}
+      <div className="relative isolate overflow-hidden border-b border-line bg-surface-2/60">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={clip.poster}
+          alt=""
+          aria-hidden
+          className="absolute inset-0 h-full w-full object-cover"
+        />
+        <div
+          aria-hidden
+          className="absolute inset-0 bg-gradient-to-b from-canvas/88 via-canvas/80 to-canvas"
+        />
+
+        <div className="relative mx-auto w-full max-w-5xl px-5 py-8">
           <Link href="/dashboard" className="text-sm text-ink-2 transition hover:text-ink">
             ← All missions
           </Link>
@@ -266,17 +286,32 @@ function DailyChart({ daily }: { daily: { day: string; entries: number }[] }) {
   const max = Math.max(...daily.map((d) => d.entries), 1);
 
   return (
-    <div className="flex h-28 items-end gap-1.5">
-      {daily.map((d) => (
-        <div key={d.day} className="group flex flex-1 flex-col items-center gap-1.5">
+    // Columns are capped at 2.75rem. Without a cap a single day's bar
+    // takes flex-1 of the whole card and renders as one solid slab across
+    // the width — which is what a mission with one entry was showing. The
+    // row stays left-aligned so a short history reads as "a few days so
+    // far" rather than as a chart stretched to fit.
+    <div className="flex h-28 items-end justify-start gap-1.5">
+      {daily.map((d) => {
+        // Local parse: `new Date("2026-08-06")` is UTC midnight, which is
+        // the previous day's number west of Greenwich.
+        const day = parseLocalDate(d.day);
+        return (
           <div
-            className="w-full rounded-t-md bg-accent transition-all"
-            style={{ height: `${Math.max(6, (d.entries / max) * 88)}px` }}
-            title={`${d.entries} on ${formatDate(d.day)}`}
-          />
-          <span className="text-[0.6rem] text-ink-3">{new Date(d.day).getDate()}</span>
-        </div>
-      ))}
+            key={d.day}
+            className="group flex h-full max-w-[2.75rem] min-w-[1.25rem] flex-1 flex-col justify-end gap-1.5"
+          >
+            <div
+              className="w-full rounded-t-md bg-accent transition-all"
+              style={{ height: `${Math.max(4, (d.entries / max) * 84)}px` }}
+              title={`${d.entries} ${d.entries === 1 ? "entry" : "entries"} on ${formatDate(d.day)}`}
+            />
+            <span className="text-center text-[0.6rem] text-ink-3">
+              {day ? day.getDate() : ""}
+            </span>
+          </div>
+        );
+      })}
     </div>
   );
 }
