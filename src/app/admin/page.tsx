@@ -5,7 +5,7 @@ import { SiteFooter } from "@/components/site/footer";
 import { SetupNotice } from "@/components/site/setup-notice";
 import { createClient, getCurrentProfile } from "@/lib/supabase/server";
 import { isSupabaseConfigured } from "@/lib/env";
-import type { AdminOverview, Organization } from "@/lib/types";
+import type { AdminOverview, ContactMessage, Organization } from "@/lib/types";
 import { AdminView } from "./admin-view";
 
 export const metadata: Metadata = { title: "Admin", robots: { index: false } };
@@ -22,9 +22,10 @@ export default async function AdminPage() {
   if (!profile.is_admin) notFound();
 
   const supabase = await createClient();
-  const [{ data, error }, { data: organizations }] = await Promise.all([
+  const [{ data, error }, { data: organizations }, { data: messages }] = await Promise.all([
     supabase.rpc("api_admin_overview"),
     supabase.rpc("api_admin_organizations"),
+    supabase.rpc("api_admin_contact_messages"),
   ]);
   if (error || !data) notFound();
 
@@ -34,6 +35,7 @@ export default async function AdminPage() {
       <AdminView
         overview={data as AdminOverview}
         organizations={(organizations as Organization[] | null) ?? []}
+        messages={(messages as ContactMessage[] | null) ?? []}
       />
       <SiteFooter />
     </>

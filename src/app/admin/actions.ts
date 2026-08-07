@@ -208,3 +208,38 @@ export async function setSettingAction(input: {
   revalidatePath("/transparency");
   return { ok: true };
 }
+
+/**
+ * Move a contact message through new → read → replied → archived, and
+ * optionally attach a private note.
+ *
+ * There is no "send reply" here because there is no SMTP: the admin view
+ * offers a mailto to the sender's own address, which opens the admin's
+ * mail client. Marking "replied" is the admin recording that they did.
+ */
+export async function updateContactMessageAction(input: {
+  id: string;
+  status?: "new" | "read" | "replied" | "archived";
+  note?: string;
+}): Promise<AdminResult> {
+  const parsed = z
+    .object({
+      id: z.string().uuid(),
+      status: z.enum(["new", "read", "replied", "archived"]).optional(),
+      note: z.string().trim().max(2000).optional(),
+    })
+    .safeParse(input);
+  if (!parsed.success) return { ok: false, error: "Couldn't update that message." };
+
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("api_admin_update_contact_message", {
+    p_id: parsed.data.id,
+    p_status: parsed.data.status ?? null,
+    p_note: parsed.data.note ?? null,
+  });
+
+  if (error) return { ok: false, error: friendlyError(error) };
+
+  revalidatePath("/admin");
+  return { ok: true };
+}

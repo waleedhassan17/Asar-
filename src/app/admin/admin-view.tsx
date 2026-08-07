@@ -10,6 +10,7 @@ import {
   EmptyState,
   Field,
   Input,
+  LinkButton,
   SectionTitle,
   Textarea,
   cx,
@@ -17,20 +18,28 @@ import {
 import { useToast } from "@/components/ui/toast";
 import { describeContribution, relativeTime, tidyNumber } from "@/lib/format";
 import { ORG_CATEGORIES, domainOf } from "@/lib/directory";
-import type { AdminOverview, MissionTemplate, OrgCategory, Organization } from "@/lib/types";
+import type {
+  AdminOverview,
+  ContactMessage,
+  MissionTemplate,
+  OrgCategory,
+  Organization,
+} from "@/lib/types";
 import {
   deleteOrganizationAction,
   moderateLinkAction,
+  updateContactMessageAction,
   resolveFlagAction,
   setSettingAction,
   upsertOrganizationAction,
   upsertTemplateAction,
 } from "./actions";
 
-type Tab = "queue" | "links" | "orgs" | "templates" | "trust" | "log";
+type Tab = "queue" | "messages" | "links" | "orgs" | "templates" | "trust" | "log";
 
 const TABS: [Tab, string][] = [
   ["queue", "Review queue"],
+  ["messages", "Messages"],
   ["links", "Give-links"],
   ["orgs", "Organizations"],
   ["templates", "Mission presets"],
@@ -41,14 +50,18 @@ const TABS: [Tab, string][] = [
 export function AdminView({
   overview,
   organizations,
+  messages,
 }: {
   overview: AdminOverview;
   organizations: Organization[];
+  messages: ContactMessage[];
 }) {
   const [tab, setTab] = useState<Tab>("queue");
 
   const counts: Record<Tab, number | null> = {
     queue: overview.review_queue.length + overview.high_volume.length,
+    // Only unread ones are worth a badge — the rest are already handled.
+    messages: messages.filter((m) => m.status === "new").length,
     links: overview.pending_links.length,
     orgs: organizations.length,
     templates: overview.templates.length,
@@ -84,6 +97,7 @@ export function AdminView({
 
       <div className="mt-8 space-y-6">
         {tab === "queue" ? <ReviewQueue overview={overview} /> : null}
+        {tab === "messages" ? <MessagesPanel messages={messages} /> : null}
         {tab === "links" ? <LinkModeration overview={overview} /> : null}
         {tab === "orgs" ? <OrganizationManager organizations={organizations} /> : null}
         {tab === "templates" ? <TemplateManager templates={overview.templates} /> : null}
@@ -946,5 +960,103 @@ function TransparencyPanel({ overview }: { overview: AdminOverview }) {
         ))}
       </dl>
     </Card>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/* Messages — "Get in touch" submissions                               */
+/* ------------------------------------------------------------------ */
+
+const TOPIC_LABELS: Record<string, string> = {
+  help: "Wants to help build",
+  verify: "Can help check causes",
+  mentor: "Would mentor students",
+  other: "Something else",
+};
+
+const STATUS_TONES: Record<string, "primary" | "neutral" | "success"> = {
+  new: "primary",
+  read: "neutral",
+  replied: "success",
+};
+
+/**
+ * Messages sent through the join band.
+ *
+ * "Reply" is a mailto to the sender, which opens the admin's own mail
+ * client — there is no SMTP configured, so the platform cannot send mail
+ * itself and should not pretend to. Marking a message replied is the
+ * admin recording what they did elsewhere.
+ */
+function MessagesPanel({ messages }: { messages: ContactMessage[] }) {
+  const toast = useToast();
+  const [pending, startTransition] = useTransition();
+
+  function move(id: string, status: ContactMessage["status"]) {
+    startTransition(async () => {
+      const result = await updateContactMessageAction({ id, status });
+      toast(result.ok ? `Marked ${status}.` : (result.error ?? "That didn't work."),
+        result.ok ? "success" : "warn");
+    });
+  }
+
+  if (messages.length === 0) {
+    return (
+      <EmptyState
+        icon="📬"
+        title="No messages yet"
+        body="Anything sent through “Get in touch” on the About page lands here."
+      />
+    );
+  }
+
+  return (
+    <div className="space-y-3">
+      {messages.map((message) => (
+        <Card key={message.id} className="p-5">
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div className="min-w-0">
+              <p className="font-semibold text-ink">
+                {message.name}{" "}
+                <a
+                  href={`mailto:${message.email}`}
+                  className="font-normal text-ink-2 underline-offset-4 hover:text-primary-600 hover:underline"
+                >
+                  {message.email}
+                </a>
+              </p>
+              <p className="mt-1 text-sm text-ink-3">
+                {TOPIC_LABELS[message.topic] ?? message.topic} · {relativeTime(message.created_at)}
+              </p>
+            </div>
+            <Badge tone={STATUS_TONES[message.status] ?? "neutral"}>{message.status}</Badge>
+          </div>
+
+          <p className="mt-4 whitespace-pre-wrap text-ink-2">{message.message}</p>
+
+          <div className="mt-5 flex flex-wrap items-center gap-2 border-t border-line pt-4">
+            <LinkButton
+              href={`mailto:${message.email}?subject=${encodeURIComponent("Re: your message to Asar")}`}
+              size="sm"
+            >
+              Reply by email
+            </LinkButton>
+            {message.status !== "read" ? (
+              <Button variant="outline" size="sm" disabled={pending} onClick={() => move(message.id, "read")}>
+                Mark read
+              </Button>
+            ) : null}
+            {message.status !== "replied" ? (
+              <Button variant="outline" size="sm" disabled={pending} onClick={() => move(message.id, "replied")}>
+                Mark replied
+              </Button>
+            ) : null}
+            <Button variant="ghost" size="sm" disabled={pending} onClick={() => move(message.id, "archived")}>
+              Archive
+            </Button>
+          </div>
+        </Card>
+      ))}
+    </div>
   );
 }

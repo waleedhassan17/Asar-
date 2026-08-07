@@ -32,6 +32,10 @@ yarn-error.log*
 
 # env files (can opt-in for committing if needed)
 .env*
+# ...except the template, which carries no values and which the README
+# tells a new contributor to copy. The blanket rule above meant a fresh
+# clone had no .env.example to copy at all.
+!.env.example
 
 # vercel
 .vercel

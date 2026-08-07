@@ -1,16 +1,17 @@
-import { LinkButton } from "@/components/ui";
 import { joinUs } from "@/lib/copy";
+import { ContactForm } from "./contact-form";
 
 /**
  * "Be part of Asar" — an invitation, not a job listing.
  *
- * There is deliberately no form here and nothing is stored: a single
- * mailto link is the whole mechanism. A contact form would imply an inbox
- * someone is staffed to watch, and a database table for it would be
- * infrastructure pretending to be a team.
+ * This used to be a single `mailto:` link, on the reasoning that a form
+ * implies a staffed inbox. That was wrong in practice: a mailto does
+ * nothing at all for anyone without a mail client configured, which on a
+ * phone browser is the common case — the button simply appeared dead.
  *
- * The address lives in `FOUNDER_EMAIL` in lib/copy.ts and is the only
- * line that needs changing.
+ * Messages now go to the database and appear on the admin dashboard.
+ * There is still no outbound mail, because there is no SMTP: an admin
+ * replies from their own mail client.
  */
 export function JoinBand({ className }: { className?: string }) {
   return (
@@ -24,9 +25,7 @@ export function JoinBand({ className }: { className?: string }) {
         </h2>
         <p className="mx-auto mt-4 max-w-2xl leading-relaxed text-ink-2">{joinUs.body}</p>
 
-        <LinkButton href={joinUs.cta.href} size="lg" className="mt-7">
-          {joinUs.cta.label}
-        </LinkButton>
+        <ContactForm className="mt-7" />
 
         <p className="mt-4 text-sm text-ink-3">{joinUs.micro}</p>
       </div>

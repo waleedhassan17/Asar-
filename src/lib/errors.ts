@@ -12,6 +12,11 @@ const MESSAGES: Record<string, string> = {
   MISSION_PRIVATE: "This mission is private. You'll need the link its owner shared.",
   MISSION_CLOSED: "This mission has already been revealed — but you can still leave a wish.",
   MISSION_LIMIT_REACHED: "You've reached the limit of 25 missions.",
+  CONTACT_NAME_REQUIRED: "Please tell us your name.",
+  CONTACT_EMAIL_INVALID: "That doesn't look like an email address.",
+  CONTACT_MESSAGE_TOO_SHORT: "A sentence or two, so we know how to reply.",
+  CONTACT_RATE_LIMITED:
+    "That's a few messages in a short time — give it an hour and we'll have read them.",
   TEMPLATE_NOT_FOUND: "That mission preset is no longer available.",
   BIRTHDAY_REQUIRED: "Please pick your birthday date.",
   GOAL_TOO_LARGE: "That goal is a little too large — try a smaller number.",

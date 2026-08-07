@@ -284,3 +284,15 @@ export interface TrustRules {
   high_volume_goal_fraction: number;
   labels: { base: string; proof: string; community: string };
 }
+
+/** A "Get in touch" message, as the admin dashboard sees it. */
+export interface ContactMessage {
+  id: string;
+  name: string;
+  email: string;
+  message: string;
+  topic: string;
+  status: "new" | "read" | "replied" | "archived";
+  admin_note: string | null;
+  created_at: string;
+}
