@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import {
+  Avatar,
   Badge,
   Button,
   Card,
@@ -20,6 +21,7 @@ import { describeContribution, relativeTime, tidyNumber } from "@/lib/format";
 import { ORG_CATEGORIES, domainOf } from "@/lib/directory";
 import type {
   AdminOverview,
+  AdminPeople,
   ContactMessage,
   MissionTemplate,
   OrgCategory,
@@ -35,11 +37,12 @@ import {
   upsertTemplateAction,
 } from "./actions";
 
-type Tab = "queue" | "messages" | "links" | "orgs" | "templates" | "trust" | "log";
+type Tab = "queue" | "messages" | "people" | "links" | "orgs" | "templates" | "trust" | "log";
 
 const TABS: [Tab, string][] = [
   ["queue", "Review queue"],
   ["messages", "Messages"],
+  ["people", "People"],
   ["links", "Give-links"],
   ["orgs", "Organizations"],
   ["templates", "Mission presets"],
@@ -51,10 +54,12 @@ export function AdminView({
   overview,
   organizations,
   messages,
+  people,
 }: {
   overview: AdminOverview;
   organizations: Organization[];
   messages: ContactMessage[];
+  people: AdminPeople;
 }) {
   const [tab, setTab] = useState<Tab>("queue");
 
@@ -62,6 +67,7 @@ export function AdminView({
     queue: overview.review_queue.length + overview.high_volume.length,
     // Only unread ones are worth a badge — the rest are already handled.
     messages: messages.filter((m) => m.status === "new").length,
+    people: people.totals.people,
     links: overview.pending_links.length,
     orgs: organizations.length,
     templates: overview.templates.length,
@@ -98,6 +104,7 @@ export function AdminView({
       <div className="mt-8 space-y-6">
         {tab === "queue" ? <ReviewQueue overview={overview} /> : null}
         {tab === "messages" ? <MessagesPanel messages={messages} /> : null}
+        {tab === "people" ? <PeoplePanel people={people} /> : null}
         {tab === "links" ? <LinkModeration overview={overview} /> : null}
         {tab === "orgs" ? <OrganizationManager organizations={organizations} /> : null}
         {tab === "templates" ? <TemplateManager templates={overview.templates} /> : null}
@@ -1057,6 +1064,127 @@ function MessagesPanel({ messages }: { messages: ContactMessage[] }) {
           </div>
         </Card>
       ))}
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/* People — everyone registered, and what they've started              */
+/* ------------------------------------------------------------------ */
+
+/**
+ * The admin dashboard could previously see flags, links, orgs and
+ * templates but not a single person, so "how many have signed up" and
+ * "who is running a mission" both needed the Supabase console.
+ *
+ * Emails are shown because the point of the view is being able to contact
+ * someone about their mission. That is also why api_admin_people checks
+ * is_platform_admin before it reads anything.
+ */
+function PeoplePanel({ people }: { people: AdminPeople }) {
+  const { totals } = people;
+  const [ownersOnly, setOwnersOnly] = useState(false);
+
+  const shown = ownersOnly ? people.people.filter((p) => p.mission_count > 0) : people.people;
+
+  return (
+    <div>
+      <dl className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        {[
+          ["Registered", totals.people, "accounts on the platform"],
+          ["Started a mission", totals.owners, `${totals.missions} missions in total`],
+          ["Finished onboarding", totals.onboarded, "got past the front door"],
+          ["Joined this week", totals.joined_last_7d, "in the last 7 days"],
+        ].map(([label, value, hint]) => (
+          <div key={label as string} className="rounded-card border border-line bg-surface p-5">
+            <dd className="nums font-display text-3xl text-ink">{tidyNumber(value as number)}</dd>
+            <dt className="mt-1 text-sm font-medium text-ink">{label}</dt>
+            <p className="mt-0.5 text-xs text-ink-3">{hint}</p>
+          </div>
+        ))}
+      </dl>
+
+      <div className="mt-6 flex flex-wrap items-center justify-between gap-3">
+        <SectionTitle
+          title={ownersOnly ? "Mission owners" : "Everyone"}
+          hint={`${shown.length} ${shown.length === 1 ? "person" : "people"}, newest first`}
+        />
+        <Button variant="outline" size="sm" onClick={() => setOwnersOnly((v) => !v)}>
+          {ownersOnly ? "Show everyone" : "Only mission owners"}
+        </Button>
+      </div>
+
+      {shown.length === 0 ? (
+        <EmptyState icon="👤" title="Nobody here yet" body="Registered people will appear here." />
+      ) : (
+        <ul className="space-y-3">
+          {shown.map((person) => (
+            <li key={person.id}>
+              <Card className="p-5">
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                  <div className="flex min-w-0 items-center gap-3">
+                    <Avatar name={person.display_name} size={40} src={person.avatar_url} />
+                    <div className="min-w-0">
+                      <p className="font-semibold text-ink">
+                        {person.display_name}
+                        {person.is_admin ? (
+                          <Badge tone="gold" className="ml-2">
+                            Admin
+                          </Badge>
+                        ) : null}
+                      </p>
+                      {person.email ? (
+                        <a
+                          href={`mailto:${person.email}`}
+                          className="text-sm text-ink-2 underline-offset-4 hover:text-primary-600 hover:underline"
+                        >
+                          {person.email}
+                        </a>
+                      ) : null}
+                    </div>
+                  </div>
+                  <div className="text-right text-xs text-ink-3">
+                    <p>joined {relativeTime(person.created_at)}</p>
+                    {person.onboarded_at ? null : <p className="mt-0.5">never onboarded</p>}
+                  </div>
+                </div>
+
+                {person.missions.length > 0 ? (
+                  <ul className="mt-4 space-y-2 border-t border-line pt-4">
+                    {person.missions.map((mission) => (
+                      <li
+                        key={mission.slug}
+                        className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1"
+                      >
+                        <Link
+                          href={`/m/${mission.slug}`}
+                          className="min-w-0 text-sm font-medium text-ink transition hover:text-primary-600"
+                        >
+                          <span aria-hidden>{mission.icon}</span> {mission.title}
+                        </Link>
+                        <span className="nums text-sm text-ink-2">
+                          {tidyNumber(mission.confirmed_units)} / {tidyNumber(mission.goal_amount)}{" "}
+                          {mission.unit_plural} · {mission.contributor_count}{" "}
+                          {mission.contributor_count === 1 ? "person" : "people"}
+                          {mission.is_revealed ? (
+                            <Badge tone="success" className="ml-2">
+                              Revealed
+                            </Badge>
+                          ) : null}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="mt-4 border-t border-line pt-4 text-sm text-ink-3">
+                    Hasn&apos;t started a mission yet.
+                  </p>
+                )}
+              </Card>
+            </li>
+          ))}
+        </ul>
+      )}
     </div>
   );
 }

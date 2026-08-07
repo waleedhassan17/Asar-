@@ -138,7 +138,7 @@ export const joinUs = {
     label: "Get in touch",
     href: `mailto:${FOUNDER_EMAIL}?subject=${encodeURIComponent("I'd like to help build Asar")}`,
   },
-  micro: "No commitment — just a conversation.",
+  micro: "No commitment — just a conversation with Muhammad Waleed Hassan, who started Asar.",
 } as const;
 
 /** Swap either of these into `heroCopy` wholesale to change the framing. */
@@ -211,8 +211,8 @@ export const aboutStory = {
   ],
 
   signature: {
-    name: "The founder",
-    role: "Asar",
+    name: "Muhammad Waleed Hassan",
+    role: "Founder, Asar",
   },
 
   cta: {

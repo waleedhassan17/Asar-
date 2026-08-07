@@ -296,3 +296,40 @@ export interface ContactMessage {
   admin_note: string | null;
   created_at: string;
 }
+
+/** A mission as it appears in the admin People view. */
+export interface AdminPersonMission {
+  slug: string;
+  title: string;
+  icon: string;
+  goal_amount: number;
+  unit_plural: string;
+  birthday_date: string;
+  status: MissionStatus;
+  is_revealed: boolean;
+  confirmed_units: number;
+  contributor_count: number;
+}
+
+/** Everyone registered on the platform, for the admin People tab. */
+export interface AdminPeople {
+  totals: {
+    people: number;
+    admins: number;
+    onboarded: number;
+    owners: number;
+    missions: number;
+    joined_last_7d: number;
+  };
+  people: {
+    id: string;
+    display_name: string;
+    email: string | null;
+    avatar_url: string | null;
+    is_admin: boolean;
+    created_at: string;
+    onboarded_at: string | null;
+    mission_count: number;
+    missions: AdminPersonMission[];
+  }[];
+}
