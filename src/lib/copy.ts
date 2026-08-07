@@ -140,6 +140,34 @@ export const joinUs = {
   },
 } as const;
 
+/* ------------------------------------------------------------------ */
+/* Asar's own birthday wish                                            */
+/*                                                                     */
+/* Shown on the reveal, once the day has actually arrived. Separate     */
+/* from the wish wall on purpose: that wall is what the person's        */
+/* friends said, and Asar has no business sitting in the middle of it   */
+/* pretending to be one of them.                                        */
+/*                                                                     */
+/* Two rules this copy has to hold to. It must not congratulate Asar —  */
+/* the friends did the good, the platform only counted it. And it must  */
+/* not be signed by "the team at Asar", because there is no team; the   */
+/* honesty rules at the top of this file apply to warmth as much as to  */
+/* legal status.                                                        */
+/* ------------------------------------------------------------------ */
+export const asarBirthdayWish = {
+  eyebrow: "A note from Asar",
+  /** `{name}` is replaced with the birthday person's first name. */
+  greeting: "Happy birthday, {name}.",
+  body: [
+    "Most birthdays collect messages. Yours collected actions — real ones, done by people who wanted to mark the day with something more durable than a wish.",
+    "None of that was Asar. We only counted it. The people below chose to do it, and they chose to do it because it was your birthday.",
+  ],
+  /** Sits last, in the display serif. */
+  closing:
+    "May the year ahead be as kind to you as you've been to others — and may what began today keep going long after the day is over.",
+  signature: "— Asar",
+} as const;
+
 /** Swap either of these into `heroCopy` wholesale to change the framing. */
 export const heroAlternates = {
   sadaqahJariyah: {

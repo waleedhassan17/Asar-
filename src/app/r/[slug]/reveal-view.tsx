@@ -8,6 +8,7 @@ import { CountUp } from "@/components/ui/count-up";
 import { Countdown } from "@/components/mission/countdown";
 import { ShareCard } from "@/components/reveal/share-card";
 import { ImpactClip } from "@/components/reveal/impact-clip";
+import { AsarWish } from "@/components/reveal/asar-wish";
 import { describeContribution, formatDate, plural, tidyNumber, toneCopy } from "@/lib/format";
 import type { RevealPayload } from "@/lib/types";
 
@@ -312,6 +313,13 @@ export function RevealView({ reveal, url }: { reveal: RevealPayload; url: string
         {/* ---------------------------------------------------------- */}
         {/* R-04 — shareable card                                        */}
         {/* ---------------------------------------------------------- */}
+        {/* Asar's own wish, before the sharing tools. The page has just
+            told this person what everyone did; the next thing they read
+            should be addressed to them, not a row of share buttons. */}
+        <div className="mb-4">
+          <AsarWish name={ownerName.split(/\s+/)[0]} />
+        </div>
+
         {/* The clip first, the card underneath it: the clip is the thing
             worth watching, the card is the thing that always works. */}
         <div className="mb-4">

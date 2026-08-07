@@ -175,8 +175,8 @@ begin
   end if;
 
   insert into public.missions (
-    owner_id, template_id, slug, title, headline, story, impact_line, icon,
-    currency, beneficiary,
+    owner_id, template_id, slug, title, headline, story, impact_line,
+    currency, beneficiary, icon,
     unit_singular, unit_plural, action_verb, lives_per_unit, increments,
     goal_amount, birthday_date, starts_at, reveal_at,
     visibility, tone, accent, allow_wish_only, allow_external_give, status
