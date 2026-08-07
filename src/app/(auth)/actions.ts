@@ -132,11 +132,23 @@ export async function signInAction(_prev: AuthState, formData: FormData): Promis
   });
 
   if (error) {
+    // Every sign-in failure is reported the same way on purpose.
+    //
+    // Supabase returns `invalid_credentials` both for a wrong password and
+    // for an address that was never registered, which is the right
+    // behaviour: distinguishing them would turn the login form into a way
+    // to discover who has an account. Anything else — an unconfirmed
+    // address, a disabled user — is also collapsed here rather than
+    // surfacing a raw Supabase string to a visitor.
+    const credentialFailure =
+      error.status === 400 ||
+      error.code === "invalid_credentials" ||
+      /invalid login credentials/i.test(error.message ?? "");
+
     return {
-      error:
-        error.message === "Invalid login credentials"
-          ? "That email and password don't match."
-          : error.message,
+      error: credentialFailure
+        ? "Invalid credentials — that email and password don't match."
+        : "We couldn't sign you in just now. Please try again.",
     };
   }
 
