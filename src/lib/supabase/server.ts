@@ -2,6 +2,7 @@ import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 import { isSupabaseConfigured } from "@/lib/env";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { getUserWithin, timeoutFetch } from "@/lib/supabase/resilience";
 
 /**
  * Server-side Supabase client bound to the request's cookies, so RLS and
@@ -30,18 +31,20 @@ export async function createClient() {
           }
         },
       },
+      global: { fetch: timeoutFetch },
     },
   );
 }
 
-/** The signed-in user's profile, or null. */
+/**
+ * The signed-in user's profile, or null. The header renders this on every
+ * page, so an unreachable Supabase must read as "signed out", not stall.
+ */
 export async function getCurrentProfile() {
   if (!isSupabaseConfigured()) return null;
 
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { user } = await getUserWithin(supabase);
   if (!user) return null;
 
   let { data } = await supabase

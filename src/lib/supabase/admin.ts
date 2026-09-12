@@ -1,6 +1,7 @@
 import "server-only";
 
 import { createClient as createSupabaseClient } from "@supabase/supabase-js";
+import { timeoutFetch } from "@/lib/supabase/resilience";
 
 /**
  * Service-role client. Bypasses RLS entirely, so it must never be
@@ -21,5 +22,6 @@ export function createAdminClient() {
 
   return createSupabaseClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, key, {
     auth: { persistSession: false, autoRefreshToken: false },
+    global: { fetch: timeoutFetch },
   });
 }

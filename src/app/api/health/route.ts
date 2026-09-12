@@ -39,7 +39,9 @@ export async function GET() {
     const { error } = await supabase
       .from("mission_templates")
       .select("id", { count: "exact", head: true });
-    db = error ? `error: ${error.message}` : "ok";
+    // A network failure comes back with an empty message; say so rather
+    // than reporting a bare "error: ".
+    db = error ? `error: ${error.message || error.code || "unreachable"}` : "ok";
   } catch (cause) {
     db = `unreachable: ${cause instanceof Error ? cause.message : "unknown"}`;
   }

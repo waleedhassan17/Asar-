@@ -76,7 +76,7 @@ export default async function HomePage() {
 
   // A signed-in visitor is welcome to read and share the landing page —
   // they are deliberately not redirected away from it. But sending them
-  // to /register would be a dead end, because middleware bounces them
+  // to /register would be a dead end, because proxy bounces them
   // straight back to /dashboard.
   const primaryCta = profile
     ? { label: "Go to dashboard", href: "/dashboard" }
